@@ -70,6 +70,9 @@ else
     protected override async Task OnInitializedAsync()
     {
         Teachers = await _context.Users.ToListAsync();
+
+        // todo: filter to teacher's role
+
         course = await _context.Courses.FirstOrDefaultAsync(m => m.Id == ID);
     }
 
