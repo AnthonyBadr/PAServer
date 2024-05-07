@@ -1,7 +1,8 @@
 ﻿@page "/Course"
-@using ServerApp2.Models
+
 @inject ApplicationDbContext _context
 @inject NavigationManager _navigation
+
 <h1>Courses</h1>
 
 <p>
@@ -29,11 +30,8 @@
 @code {
     private IList<Course> Course = new List<Course>();
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        if (_context.Courses != null)
-        {
-            Course = _context.Courses.ToList();
-        }
+        Course = _context.Courses.ToList();
     }
 }

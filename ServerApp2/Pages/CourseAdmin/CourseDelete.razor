@@ -1,6 +1,5 @@
 ﻿@page "/Course/Delete/{ID:guid}"
-@using Microsoft.EntityFrameworkCore
-@using ServerApp2.Models
+
 @inject NavigationManager _navigation
 @inject ApplicationDbContext _context
 
@@ -8,7 +7,6 @@
 
 @if (course != null)
 {
-
     <h3>Are you sure you want to delete this?</h3>
     <div>
         <h4>Course</h4>
@@ -22,7 +20,7 @@
             <dd class="col-sm-10">@course.Fee</dd>
         </dl>
 
-        <form method="post">
+        <form method="post" @onsubmit="DeleteCourse">
             <button type="submit" class="btn btn-danger">Delete</button> |
             <a href="Index">Back to List</a>
         </form>
@@ -37,8 +35,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (_context.Courses != null)
-            course = await _context.Courses.FirstOrDefaultAsync(m => m.Id == ID);
+        course = await _context.Courses.FirstOrDefaultAsync(m => m.Id == ID);
     }
 
     private async Task DeleteCourse()

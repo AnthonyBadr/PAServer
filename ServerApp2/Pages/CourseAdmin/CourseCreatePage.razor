@@ -1,7 +1,7 @@
 ﻿@page "/Course/Create"
 
-@inject ApplicationDbContext _context
 @inject NavigationManager _navigation
+@inject ApplicationDbContext _context
 
 <h1>Create</h1>
 
@@ -40,11 +40,6 @@
 
     private async Task CreateCourse()
     {
-        // if (!course.IsValid())
-        // {
-        //     return;
-        // }
-
         _context.Courses.Add(course);
         await _context.SaveChangesAsync();
         _navigation.NavigateTo("Course");
