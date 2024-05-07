@@ -11,8 +11,6 @@ public class Course
     public Guid Id { get; set; }
 
     public string Name { get; set; }
-    public string Description { get; set; }
-    public double price { get; set; }
-
-    public string? InputModelId { get; set; }
+    public string? Description { get; set; }
+    public double Fee { get; set; }
 }

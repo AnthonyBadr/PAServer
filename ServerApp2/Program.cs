@@ -55,7 +55,7 @@ app.MapFallbackToPage("/_Host");
 // Create and seed roles
 CreateAndSeedRoles(app.Services);
 
-app.Run();
+await app.RunAsync();
 
 async void CreateAndSeedRoles(IServiceProvider serviceProvider)
 {

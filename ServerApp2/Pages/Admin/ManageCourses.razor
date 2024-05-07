@@ -16,8 +16,8 @@
     </div>
     <div class="form-group">
         <label for="price">Price:</label>
-        <InputNumber id="price" @bind-Value="course.price" class="form-control" />
-        <ValidationMessage For="@(() => course.price)" />
+        <InputNumber id="price" @bind-Value="course.Fee" class="form-control" />
+        <ValidationMessage For="@(() => course.Fee)" />
     </div>
     <button type="submit" class="btn btn-primary">Create Course</button>
 </EditForm>
@@ -28,7 +28,7 @@
     <ul>
         @foreach (var item in courses)
         {
-            <li>@item.Name - @item.Description - @item.price</li>
+            <li>@item.Name - @item.Description - @item.Fee</li>
         }
     </ul>
 }

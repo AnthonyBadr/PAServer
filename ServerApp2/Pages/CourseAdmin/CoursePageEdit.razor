@@ -1,0 +1,68 @@
+﻿@page "/Course/Edit/{ID:guid}"
+@using Microsoft.EntityFrameworkCore
+@using ServerApp2.Models
+@inject ApplicationDbContext _context
+@inject NavigationManager _navigation
+<h3>CoursePageEdit</h3>
+
+<h1>Edit</h1>
+
+<h4>Course</h4>
+<hr />
+
+@if (course == null)
+{
+    <div>Course doesn't exist</div>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm Model="@course" OnValidSubmit="UpdateCourse">
+                <DataAnnotationsValidator />
+                <input type="hidden" value="@ID" />
+                <div class="form-group">
+                    <label for="Name">Name</label>
+                    <InputText id="Name" @bind-Value="course.Name" class="form-control" />
+                    <ValidationMessage For="@(() => course.Name)" />
+                </div>
+                <div class="form-group">
+                    <label for="Description">Description</label>
+                    <InputText id="Description" @bind-Value="course.Description" class="form-control" />
+                    <ValidationMessage For="@(() => course.Description)" />
+                </div>
+                <div class="form-group">
+                    <label for="Fee">Fee</label>
+                    <InputNumber id="Fee" @bind-Value="course.Fee" class="form-control" />
+                    <ValidationMessage For="@(() => course.Fee)" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="Index">Back to List</a>
+</div>
+
+@code {
+    private Course? course = new Course();
+
+    [Parameter]
+    [SupplyParameterFromQuery()]
+    public Guid ID { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            course = await _context.Courses.FirstOrDefaultAsync(m => m.Id == ID);
+    }
+
+    private async Task UpdateCourse()
+    {
+        _context.Attach(course).State = EntityState.Modified;
+        await _context.SaveChangesAsync();
+        _navigation.NavigateTo("Course");
+    }
+}

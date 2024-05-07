@@ -1,0 +1,52 @@
+﻿@page "/Course/Create"
+
+@inject ApplicationDbContext _context
+@inject NavigationManager _navigation
+
+<h1>Create</h1>
+
+<h4>Course</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm Model="@course" OnValidSubmit="CreateCourse">
+            <DataAnnotationsValidator />
+            <div class="form-group">
+                <label for="Name">Name</label>
+                <InputText id="Name" @bind-Value="course.Name" class="form-control" />
+                <ValidationMessage For="@(() => course.Name)" />
+            </div>
+            <div class="form-group">
+                <label for="Description">Description</label>
+                <InputText id="Description" @bind-Value="course.Description" class="form-control" />
+                <ValidationMessage For="@(() => course.Description)" />
+            </div>
+            <div class="form-group">
+                <label for="Fee">Fee</label>
+                <InputNumber id="Fee" @bind-Value="course.Fee" class="form-control" />
+                <ValidationMessage For="@(() => course.Fee)" />
+            </div>
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="Index">Back to Courses</a>
+</div>
+
+@code {
+    private Course course = new Course();
+
+    private async Task CreateCourse()
+    {
+        // if (!course.IsValid())
+        // {
+        //     return;
+        // }
+
+        _context.Courses.Add(course);
+        await _context.SaveChangesAsync();
+        _navigation.NavigateTo("Course");
+    }
+}

@@ -2,16 +2,25 @@
 
 #nullable disable
 
-namespace ServerApp2.Data.Migrations
+namespace ServerApp2.Migrations
 {
     /// <inheritdoc />
-    public partial class d : Migration
+    public partial class courseupdates : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<string>(
+            migrationBuilder.DropColumn(
                 name: "InputModelId",
+                table: "Courses");
+
+            migrationBuilder.RenameColumn(
+                name: "price",
+                table: "Courses",
+                newName: "Fee");
+
+            migrationBuilder.AlterColumn<string>(
+                name: "Description",
                 table: "Courses",
                 type: "nvarchar(max)",
                 nullable: true,
@@ -22,8 +31,13 @@ namespace ServerApp2.Data.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.RenameColumn(
+                name: "Fee",
+                table: "Courses",
+                newName: "price");
+
             migrationBuilder.AlterColumn<string>(
-                name: "InputModelId",
+                name: "Description",
                 table: "Courses",
                 type: "nvarchar(max)",
                 nullable: false,
@@ -31,6 +45,12 @@ namespace ServerApp2.Data.Migrations
                 oldClrType: typeof(string),
                 oldType: "nvarchar(max)",
                 oldNullable: true);
+
+            migrationBuilder.AddColumn<string>(
+                name: "InputModelId",
+                table: "Courses",
+                type: "nvarchar(max)",
+                nullable: true);
         }
     }
 }
