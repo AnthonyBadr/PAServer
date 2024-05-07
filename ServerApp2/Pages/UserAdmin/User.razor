@@ -1,4 +1,4 @@
-﻿@page "/user-list"
+﻿@page "/users"
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.EntityFrameworkCore
 @inject UserManager<IdentityUser> UserManager
@@ -59,15 +59,13 @@ else
                 <input type="email" value="@editingUser.Email" @oninput="HandleEmailChange" />
 
                 <label>Roles:</label>
-                @if (editingUserRoles != null)
-                {
-                    <select value="@string.Join(",", editingUserRoles)" @onchange="HandleRoleChange">
-                        @foreach (var role in editingUserRoles)
-                        {
-                            <option value="@role">@role</option>
-                        }
-                    </select>
-                }
+
+                <select @onchange="HandleRoleChange">
+                    @foreach (UserRole role in Roles)
+                    {
+                        <option selected="@role.IsSelected" value="@role.ID">@role.Name</option>
+                    }
+                </select>
 
                 <button class="btn btn-success" @onclick="UpdateUser">Save Changes</button>
                 <button class="btn btn-secondary" @onclick="() => editingUser = null">Cancel</button>
@@ -77,6 +75,15 @@ else
 }
 
 @code {
+    public class UserRole
+    {
+        public required string ID { get; set; }
+        public required string Name { get; set; }
+        public bool IsSelected { get; set; } = false;
+    }
+
+    private List<UserRole> Roles { get; set; }
+
     private List<IdentityUser> users;
     private Dictionary<string, List<string>> userRoles = new Dictionary<string, List<string>>();
     private IdentityUser editingUser;
@@ -86,6 +93,9 @@ else
     {
         users = await UserManager.Users.ToListAsync();
         allRoles = await RoleManager.Roles.ToListAsync();
+
+        Roles = allRoles.Select(key => new UserRole() { ID = key.Name.ToLower(), Name = key.Name! }).ToList();
+
         await LoadUserRoles();
     }
 
@@ -98,10 +108,13 @@ else
         }
     }
 
-    private void EditUser(IdentityUser user)
+    private async Task EditUser(IdentityUser user)
     {
         editingUser = user;
-        editingUserRoles = allRoles.Select(r => r.Name).ToList();
+
+        var roles = await UserManager.GetRolesAsync(editingUser);
+
+        Roles.First(key => key.ID.Equals(roles.First(), StringComparison.OrdinalIgnoreCase)).IsSelected = true;
     }
 
 
