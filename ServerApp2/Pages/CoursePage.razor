@@ -1,0 +1,53 @@
+﻿@page "/course"
+
+@inject CourseService _service
+
+@using System.Security.Claims
+@using ServerApp2.Models
+
+<h3>Course</h3>
+
+<p>Welcome, @CurrentUserName!</p>
+<p>Your email: @CurrentUserEmail</p>
+
+@code {
+    [Inject]
+    private AuthenticationStateProvider AuthenticationStateProvider { get; set; }
+
+    private string CurrentUserName { get; set; }
+    private string CurrentUserEmail { get; set; }
+    private string CurrentId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+        string id = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // string id = authState.User.Claims.First(key => key.Type == ClaimTypes.NameIdentifier);
+
+        Console.WriteLine("ID:" + id);
+
+        if (authState.User.Identity.IsAuthenticated)
+        {
+            CurrentUserName = authState.User.Identity.Name;
+
+            // Get the user's email claim
+            var emailClaim = authState.User.FindFirst(c => c.Type == "email");
+            if (emailClaim != null)
+            {
+                CurrentUserEmail = emailClaim.Value;
+            }
+            else
+            {
+                // Handle case where email claim is not found
+                CurrentUserEmail = "Email not found";
+            }
+        }
+        else
+        {
+            CurrentUserName = "Anonymous";
+            CurrentUserEmail = string.Empty;
+        }
+    }
+}

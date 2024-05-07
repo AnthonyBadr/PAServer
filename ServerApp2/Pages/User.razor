@@ -1,0 +1,174 @@
+﻿@page "/user-list"
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@inject UserManager<IdentityUser> UserManager
+@inject RoleManager<IdentityRole> RoleManager
+
+<h3>Registered Users</h3>
+
+@if (users != null)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Roles</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in users)
+            {
+                <tr>
+                    <td>@user.UserName</td>
+                    <td>@user.Email</td>
+                    <td>
+                        @if (userRoles.ContainsKey(user.Id))
+                        {
+                            @foreach (var role in userRoles[user.Id])
+                            {
+                                <div>@role</div>
+                            }
+                        }
+                    </td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="() => EditUser(user)">Edit</button>
+                        <button class="btn btn-danger" @onclick="() => DeleteUser(user)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>Loading users...</p>
+}
+
+@if (editingUser != null)
+{
+    <div class="modal" style="display:block; position:fixed; z-index:1000; top:0; left:0; height:100%; width:100%; background-color:rgba(0,0,0,0.5);">
+        <div class="modal-content" style="background-color: white; margin: 10% auto; padding: 20px; width: 90%; max-width: 600px;">
+            <h2>Edit User</h2>
+            <div>
+                <label>Username:</label>
+                <input value="@editingUser.UserName" @oninput="HandleInputChange" />
+
+                <label>Email:</label>
+                <input type="email" value="@editingUser.Email" @oninput="HandleEmailChange" />
+
+                <label>Roles:</label>
+                @if (editingUserRoles != null)
+                {
+                    <select value="@string.Join(",", editingUserRoles)" @onchange="HandleRoleChange">
+                        @foreach (var role in editingUserRoles)
+                        {
+                            <option value="@role">@role</option>
+                        }
+                    </select>
+                }
+
+                <button class="btn btn-success" @onclick="UpdateUser">Save Changes</button>
+                <button class="btn btn-secondary" @onclick="() => editingUser = null">Cancel</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<IdentityUser> users;
+    private Dictionary<string, List<string>> userRoles = new Dictionary<string, List<string>>();
+    private IdentityUser editingUser;
+    private List<string> editingUserRoles;
+    private List<IdentityRole> allRoles;
+    protected override async Task OnInitializedAsync()
+    {
+        users = await UserManager.Users.ToListAsync();
+        allRoles = await RoleManager.Roles.ToListAsync();
+        await LoadUserRoles();
+    }
+
+    private async Task LoadUserRoles()
+    {
+        foreach (var user in users)
+        {
+            var roles = await UserManager.GetRolesAsync(user);
+            userRoles[user.Id] = roles.ToList();
+        }
+    }
+
+    private void EditUser(IdentityUser user)
+    {
+        editingUser = user;
+        editingUserRoles = allRoles.Select(r => r.Name).ToList();
+    }
+
+
+    private async Task DeleteUser(IdentityUser user)
+    {
+        var result = await UserManager.DeleteAsync(user);
+        if (result.Succeeded)
+        {
+            users.Remove(user);
+            userRoles.Remove(user.Id);
+        }
+        else
+        {
+            // Handle errors, possibly adding error messages to the UI
+            Console.WriteLine("Error deleting user");
+        }
+    }
+
+    void HandleInputChange(ChangeEventArgs e)
+    {
+        editingUser.UserName = e.Value.ToString();
+    }
+
+    void HandleEmailChange(ChangeEventArgs e)
+    {
+        editingUser.Email = e.Value.ToString();
+    }
+
+    void HandleRoleChange(ChangeEventArgs e)
+    {
+        // Simplified for demonstration; might require a more robust handling for multiple roles
+        var newRoles = e.Value.ToString().Split(',').ToList();
+        editingUserRoles = newRoles;
+    }
+
+    async Task UpdateUser()
+    {
+        // Assign selected roles to the user
+        var result = await UserManager.RemoveFromRolesAsync(editingUser, await UserManager.GetRolesAsync(editingUser));
+        if (!result.Succeeded)
+        {
+            // Handle error
+            Console.WriteLine("Error removing user roles");
+            return;
+        }
+
+        result = await UserManager.AddToRolesAsync(editingUser, editingUserRoles);
+        if (!result.Succeeded)
+        {
+            // Handle error
+            Console.WriteLine("Error adding user roles");
+            return;
+        }
+
+        // Update user details
+        result = await UserManager.UpdateAsync(editingUser);
+        if (result.Succeeded)
+        {
+            // Update roles here if needed
+            await LoadUserRoles();
+            editingUser = null;  // Hide modal
+        }
+        else
+        {
+            // Handle errors
+            Console.WriteLine("Error updating user");
+        }
+    }
+
+}

@@ -1,0 +1,55 @@
+﻿@page "/course/manage"
+@using ServerApp2.Data
+@using ServerApp2.Models
+@inject ApplicationDbContext DbContext
+@using Microsoft.EntityFrameworkCore
+<EditForm Model="@course" OnValidSubmit="HandleValidSubmit">
+    <div class="form-group">
+        <label for="name">Name:</label>
+        <InputText id="name" @bind-Value="course.Name" class="form-control" />
+        <ValidationMessage For="@(() => course.Name)" />
+    </div>
+    <div class="form-group">
+        <label for="description">Description:</label>
+        <InputTextArea id="description" @bind-Value="course.Description" class="form-control" />
+        <ValidationMessage For="@(() => course.Description)" />
+    </div>
+    <div class="form-group">
+        <label for="price">Price:</label>
+        <InputNumber id="price" @bind-Value="course.price" class="form-control" />
+        <ValidationMessage For="@(() => course.price)" />
+    </div>
+    <button type="submit" class="btn btn-primary">Create Course</button>
+</EditForm>
+
+@if (courses != null && courses.Any())
+{
+    <h2>List of Courses</h2>
+    <ul>
+        @foreach (var item in courses)
+        {
+            <li>@item.Name - @item.Description - @item.price</li>
+        }
+    </ul>
+}
+else
+{
+    <p>No courses found.</p>
+}
+
+@code {
+    Course course = new Course();
+    List<Course> courses;
+
+    protected override async Task OnInitializedAsync()
+    {
+        courses = await DbContext.Courses.ToListAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        DbContext.Courses.Add(course);
+        await DbContext.SaveChangesAsync();
+        courses = await DbContext.Courses.ToListAsync(); // Refresh the course list after saving
+    }
+}
