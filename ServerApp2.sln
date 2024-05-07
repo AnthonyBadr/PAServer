@@ -5,13 +5,13 @@ VisualStudioVersion = 17.9.34607.119
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerApp2", "ServerApp2\ServerApp2.csproj", "{91B72D7E-A609-464B-806F-30D32358EA8B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PADatabase", "PADatabase\PADatabase.csproj", "{538DAD44-0DEB-444A-B9EC-1D21E4CDB5F8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PADatabase", "PADatabase\PADatabase.csproj", "{538DAD44-0DEB-444A-B9EC-1D21E4CDB5F8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PAWebShared", "PAWebShared\PAWebShared.csproj", "{9B0A8E01-F282-48C0-8375-9F224616D0D3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PAWebShared", "PAWebShared\PAWebShared.csproj", "{9B0A8E01-F282-48C0-8375-9F224616D0D3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PAPublic", "PAPublic\PAPublic.csproj", "{BA571F59-EBF8-470E-8818-1766CCF39997}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorApp1", "BlazorApp1\BlazorApp1.csproj", "{74F7318B-D5C0-4259-965A-C2DAE9B3B388}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorApp1", "BlazorApp1\BlazorApp1.csproj", "{74F7318B-D5C0-4259-965A-C2DAE9B3B388}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

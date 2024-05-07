@@ -1,0 +1,35 @@
+﻿@page "/student/courses"
+
+@inject ApplicationDbContext _context
+
+<h1>Courses</h1>
+
+<p>
+    <a href="Course/Create">Create New</a>
+</p>
+
+<table class="table">
+    <tbody>
+        @foreach (var item in Course)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.Description</td>
+                <td>@item.Fee</td>
+                <td>
+                    <a href="/Course/Edit/@item.Id">Edit</a> |
+                    <a href="/Course/@item.Id">Details</a> |
+                    <a href="/Course/Delete/@item.Id">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+@code {
+    private IList<Course> Course = new List<Course>();
+
+    protected override void OnInitialized()
+    {
+        Course = _context.Courses.ToList();
+    }
+}
