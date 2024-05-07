@@ -1,7 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Identity;
 
-namespace ServerApp2.Models;
+namespace PADatabase.Models;
 
 public class Course
 {
@@ -13,4 +14,7 @@ public class Course
     public string Name { get; set; }
     public string? Description { get; set; }
     public double Fee { get; set; }
+
+    public string? UserId { get; set; }
+    public virtual IdentityUser User { get; set; }
 }

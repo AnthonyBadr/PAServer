@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ServerApp2.Areas.Identity;
-using ServerApp2.Data;
+using PADatabase;
 
 var builder = WebApplication.CreateBuilder(args);
 

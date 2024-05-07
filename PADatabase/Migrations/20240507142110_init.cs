@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace ServerApp2.Migrations
+namespace PADatabase.Migrations
 {
     /// <inheritdoc />
     public partial class init : Migration

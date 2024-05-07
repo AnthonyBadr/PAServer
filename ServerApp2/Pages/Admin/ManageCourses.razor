@@ -1,8 +1,7 @@
 ﻿@page "/course/manage"
-@using ServerApp2.Data
-@using ServerApp2.Models
+
 @inject ApplicationDbContext DbContext
-@using Microsoft.EntityFrameworkCore
+
 <EditForm Model="@course" OnValidSubmit="HandleValidSubmit">
     <div class="form-group">
         <label for="name">Name:</label>

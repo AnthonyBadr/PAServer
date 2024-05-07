@@ -1,17 +1,16 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using ServerApp2.Models;
+using PADatabase.Models;
 
-namespace ServerApp2.Data
+namespace PADatabase;
+
+public class ApplicationDbContext : IdentityDbContext
 {
-    public class ApplicationDbContext : IdentityDbContext
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        : base(options)
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-            : base(options)
-        {
-
-        }
-        public DbSet<Course> Courses { get; set; }
-
+        
     }
+    public DbSet<Course> Courses { get; set; }
+
 }

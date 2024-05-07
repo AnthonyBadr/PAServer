@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using ServerApp2.Data;
+using PADatabase;
 
 #nullable disable
 
-namespace ServerApp2.Migrations
+namespace PADatabase.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     [Migration("20240507142110_init")]

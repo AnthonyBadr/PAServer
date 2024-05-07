@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace ServerApp2.Migrations
+namespace PADatabase.Migrations
 {
     /// <inheritdoc />
     public partial class courseupdates : Migration
