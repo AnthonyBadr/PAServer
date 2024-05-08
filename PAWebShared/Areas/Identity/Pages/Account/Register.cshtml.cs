@@ -18,10 +18,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.WebUtilities;
+using PADatabase.Migrations;
 
 namespace ServerApp2.Areas.Identity.Pages.Account
 {
-   
+
     public class RegisterModel : PageModel
     {
         private readonly SignInManager<IdentityUser> _signInManager;
@@ -50,7 +51,7 @@ namespace ServerApp2.Areas.Identity.Pages.Account
         }
 
         [BindProperty]
-        public InputModel Input { get; set; }
+        public InputModel Input { get; set; } 
 
         public string ReturnUrl { get; set; }
         public IList<AuthenticationScheme> ExternalLogins { get; set; }
@@ -64,6 +65,7 @@ namespace ServerApp2.Areas.Identity.Pages.Account
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
             returnUrl ??= Url.Content("~/");
+
             if (ModelState.IsValid)
             {
                 var user = CreateUser();
@@ -76,27 +78,17 @@ namespace ServerApp2.Areas.Identity.Pages.Account
                 {
                     _logger.LogInformation("User created a new account with password.");
 
-                    // Corrected to use _roleManager to check if the role exists
-                    var roleExists = await _roleManager.RoleExistsAsync(Input.Role);
-                    if (roleExists)
+                    var roleResult = await _userManager.AddToRoleAsync(user, Input.Role);
+
+                    if (!roleResult.Succeeded)
                     {
-                        var roleResult = await _userManager.AddToRoleAsync(user, Input.Role);
-                        if (!roleResult.Succeeded)
+                        // Log an error message or handle errors
+                        _logger.LogError("Error adding role: {Role}", Input.Role);
+                        foreach (var error in roleResult.Errors)
                         {
-                            // Log an error message or handle errors
-                            _logger.LogError("Error adding role: {Role}", Input.Role);
-                            foreach (var error in roleResult.Errors)
-                            {
-                                ModelState.AddModelError(string.Empty, error.Description);
-                            }
-                            // Possibly return to show the form again or a failure message
+                            ModelState.AddModelError(string.Empty, error.Description);
                         }
-                    }
-                    else
-                    {
-                        _logger.LogError("Role does not exist: {Role}", Input.Role);
-                        ModelState.AddModelError(string.Empty, "The selected role does not exist.");
-                        // Optionally handle the case where the role doesn't exist
+                        // Possibly return to show the form again or a failure message
                     }
 
                     var userId = await _userManager.GetUserIdAsync(user);

@@ -1,0 +1,56 @@
+﻿@page "/a/Create"
+
+@inject NavigationManager _navigation
+@inject ApplicationDbContext _context
+
+<h1>Create</h1>
+
+<h4>Course</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm Model="@assigment" OnValidSubmit="CreateCourse">
+            <DataAnnotationsValidator />
+            <div class="form-group">
+                <label>Title</label>
+                <InputText @bind-Value="@assigment.Title" class="form-control" />
+                <ValidationMessage For="@(() => assigment.Title)" />
+            </div>
+
+            <div class="form-group">
+                <label>Description</label>
+                <InputText @bind-Value="@assigment.Description" class="form-control" />
+                <ValidationMessage For="@(() => assigment.Description)" />
+            </div>
+
+            <div class="form-group">
+                <label>Due Date</label>
+                <InputDate @bind-Value="@assigment.DueDate" class="form-control" />
+                <ValidationMessage For="@(() => assigment.DueDate)" />
+            </div>
+
+            <div class="form-group">
+                <label>PDF File</label>
+                <InputFile @bind-Value="@pdfFile" />
+                <ValidationMessage For="@(() => pdfFile)" />
+            </div>
+          
+          
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="Index">Back to Courses</a>
+</div>
+
+@code {
+    private Assignment assigment = new Assignment();
+    private IBrowserFile pdfFile;
+    private async Task CreateCourse()
+    {
+        Console.WriteLine("hello");
+
+    }
+}

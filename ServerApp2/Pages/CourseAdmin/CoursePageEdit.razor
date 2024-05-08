@@ -1,88 +1,94 @@
-﻿@page "/Course/Edit/{ID:guid}"
-@using Microsoft.AspNetCore.Identity
+﻿    @page "/Course/Edit/{ID:guid}"
+    @using Microsoft.AspNetCore.Identity
 
-@inject ApplicationDbContext _context
-@inject NavigationManager _navigation
+    @inject ApplicationDbContext _context
+    @inject NavigationManager _navigation
+    @inject RoleManager<IdentityRole> _roleManager
+    @inject UserManager<IdentityUser> UserManager
 
-<h3>CoursePageEdit</h3>
+    <h3>CoursePageEdit</h3>
 
-<h1>Edit</h1>
+    <h1>Edit</h1>
 
-<h4>Course</h4>
-<hr />
+    <h4>Course</h4>
+    <hr />
 
-@if (course == null)
-{
-    <div>Course doesn't exist</div>
-}
-else
-{
-    <div class="row">
-        <div class="col-md-4">
-            <EditForm Model="@course" OnValidSubmit="UpdateCourse">
-                <DataAnnotationsValidator />
-                <div class="form-group">
-                    <label for="Name">Name</label>
-                    <InputText id="Name" @bind-Value="course.Name" class="form-control" />
-                    <ValidationMessage For="@(() => course.Name)" />
-                </div>
-                <div class="form-group">
-                    <label for="Description">Description</label>
-                    <InputText id="Description" @bind-Value="course.Description" class="form-control" />
-                    <ValidationMessage For="@(() => course.Description)" />
-                </div>
-                <div class="form-group">
-                    <label for="Fee">Fee</label>
-                    <InputNumber id="Fee" @bind-Value="course.Fee" class="form-control" />
-                    <ValidationMessage For="@(() => course.Fee)" />
-                </div>
+    @if (course == null)
+    {
+        <div>Course doesn't exist</div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-md-4">
+                <EditForm Model="@course" OnValidSubmit="UpdateCourse">
+                    <DataAnnotationsValidator />
+                    <div class="form-group">
+                        <label for="Name">Name</label>
+                        <InputText id="Name" @bind-Value="course.Name" class="form-control" />
+                        <ValidationMessage For="@(() => course.Name)" />
+                    </div>
+                    <div class="form-group">
+                        <label for="Description">Description</label>
+                        <InputText id="Description" @bind-Value="course.Description" class="form-control" />
+                        <ValidationMessage For="@(() => course.Description)" />
+                    </div>
+                    <div class="form-group">
+                        <label for="Fee">Fee</label>
+                        <InputNumber id="Fee" @bind-Value="course.Fee" class="form-control" />
+                        <ValidationMessage For="@(() => course.Fee)" />
+                    </div>
 
-                <div class="form-group">
-                    <label for="UserId">Teacher</label>
-                    <br />
-                    <InputSelect id="UserId" @bind-Value="course.UserId">
-                        <option value="">--</option>
-                        @foreach (var user in Teachers)
-                        {
-                            <option value="@user.Id">@user.UserName</option>
-                        }
-                    </InputSelect>
-                </div>
+                    <div class="form-group">
+                        <label for="UserId">Teacher</label>
+                        <br />
+                        <InputSelect id="UserId" @bind-Value="course.UserId">
+                            <option value="">--</option>
+                            @foreach (var user in Teachers)
+                            {
+                                <option value="@user.Id">@user.UserName</option>
+                            }
+                        </InputSelect>
+                    </div>
 
-                <button type="submit" class="btn btn-primary">Save</button>
-            </EditForm>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </EditForm>
+            </div>
         </div>
+    }
+
+    <div>
+        <a href="Index">Back to List</a>
     </div>
-}
 
-<div>
-    <a href="Index">Back to List</a>
-</div>
+    @code {
+        private Course? course;
 
-@code {
-    private Course? course;
+        [Parameter]
+        public Guid ID { get; set; }
 
-    [Parameter]
-    public Guid ID { get; set; }
+        protected List<IdentityUser> Teachers { get; set; }
 
-    protected List<IdentityUser> Teachers { get; set; }
+        protected override async Task OnInitializedAsync()
+        {
+            var teacherRole = await _roleManager.Roles.SingleAsync(r => r.Name == "Teacher");
 
-    protected override async Task OnInitializedAsync()
-    {
-        Teachers = await _context.Users.ToListAsync();
+          
+        Teachers = (await UserManager.GetUsersInRoleAsync(teacherRole.Name)).ToList();
 
-        // todo: filter to teacher's role
 
-        course = await _context.Courses.FirstOrDefaultAsync(m => m.Id == ID);
+         
+
+            course = await _context.Courses.FirstOrDefaultAsync(m => m.Id == ID);
+        }
+
+        private async Task UpdateCourse()
+        {
+            if (string.IsNullOrEmpty(course.UserId))
+                course.UserId = null;
+
+            _context.Update(course);
+            await _context.SaveChangesAsync();
+            _navigation.NavigateTo("Course");
+        }
     }
-
-    private async Task UpdateCourse()
-    {
-        if (string.IsNullOrEmpty(course.UserId))
-            course.UserId = null;
-
-        _context.Update(course);
-        await _context.SaveChangesAsync();
-        _navigation.NavigateTo("Course");
-    }
-}

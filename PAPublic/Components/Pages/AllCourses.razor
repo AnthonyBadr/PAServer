@@ -1,0 +1,119 @@
+﻿@page "/AllCourse"
+@using Microsoft.AspNetCore.Components.Web.Extensions
+
+@using System.Security.Claims
+@inject ApplicationDbContext _context
+@inject NavigationManager _navigation
+@using Microsoft.JSInterop
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JSRuntime
+<h1>Course to enroll in </h1>
+@if (Course.Any())
+{
+    <table class="table">
+        <tbody>
+            @foreach (var item in Course)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.Description</td>
+                    <td>@item.Fee</td>
+                    <td>
+                        <button @onclick="() => Enroll(item)">Enroll</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<h1>Enrolled Courses</h1>
+@if (CoursErolled.Any())
+{
+    <table class="table">
+        <tbody>
+            @foreach (var item in CoursErolled)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.Description</td>
+                    <td>@item.Fee</td>
+                    <td>
+                        <button @onclick="() => Drop(item.Id)">Drop</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+@code {
+
+
+    private IList<Course> Course = new List<Course>();
+    private IList<Course> CoursErolled = new List<Course>();
+    private CourseUser course_user = new CourseUser();
+    private string userId;
+
+
+    private IList<CourseUser> courseuserenrolment = new List<CourseUser>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        userId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        
+        Course = _context.Courses.ToList();
+
+        RefreshData();
+    }
+
+    private void RefreshData()
+    {
+        CoursErolled.Clear();
+
+        courseuserenrolment = _context.CourseUsers.Where(cu => cu.UserId == userId).ToList();
+
+        @foreach (var item in courseuserenrolment)
+        {
+            Course? n = _context.Courses.FirstOrDefault(c => c.Id == item.CourseId);
+          
+            if (n != null)
+                CoursErolled.Add(n);
+
+          
+        }
+
+        StateHasChanged();
+    }
+
+    private async void Enroll(Course item)
+    {
+        CourseUser courseuser = new CourseUser();
+        courseuser.CourseId = item.Id;
+        courseuser.UserId = userId;
+
+        _context.CourseUsers.Add(courseuser);
+        await _context.SaveChangesAsync();
+        Course.Remove(item);
+        RefreshData();
+    }
+
+    private async void Drop(Guid id)
+    {
+        CourseUser n = _context.CourseUsers.FirstOrDefault(c => c.CourseId == id);
+
+        if (n == null)
+            return;
+
+        // Add the dropped course back to the Course list
+        Course.Add(_context.Courses.FirstOrDefault(c => c.Id == id));
+
+        _context.CourseUsers.Remove(n);
+        await _context.SaveChangesAsync();
+
+        RefreshData();
+    }
+}

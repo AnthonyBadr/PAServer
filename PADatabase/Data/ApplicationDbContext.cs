@@ -11,6 +11,15 @@ public class ApplicationDbContext : IdentityDbContext
     {
         
     }
+
+    public DbSet<PdfFile> PdfFiles { get; set; }
     public DbSet<Course> Courses { get; set; }
+    public DbSet<CourseUser> CourseUsers{ get; set; }
+
+    public DbSet<Assignment> Assignments { get; set; }
 
 }
+
+
+
+
