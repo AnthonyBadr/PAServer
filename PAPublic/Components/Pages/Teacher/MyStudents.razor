@@ -1,0 +1,48 @@
+﻿@page "/MyCourses/MyStudents/{ID:guid}"
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<IdentityUser> UserManager
+@inject ApplicationDbContext _context
+@inject NavigationManager _navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<h3>MyStudents</h3>
+
+<table class="table">
+    <tbody>
+        @foreach (var item in Students)
+        {
+            <tr>
+                <td>@item.Email</td>
+                <td>
+                    <a href="/MyStudent/Assignment/@item.Id/@ID">Assigment</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    [Parameter]
+    public Guid ID { get; set; }
+    protected List<IdentityUser> Students { get; set; } = new List<IdentityUser>();
+    private IList<CourseUser> CourseUser = new List<CourseUser>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        string authid = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        CourseUser = _context.CourseUsers.Where(c => c.CourseId == ID).ToList();
+
+        Students = new List<IdentityUser>();
+        foreach (var item in CourseUser)
+        {
+            var student = await UserManager.FindByIdAsync(item.UserId);
+            if (student != null)
+            {
+                Students.Add(student);
+            }
+        }
+    }
+}

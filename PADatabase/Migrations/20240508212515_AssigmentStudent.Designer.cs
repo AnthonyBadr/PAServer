@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PADatabase;
 
@@ -11,9 +12,11 @@ using PADatabase;
 namespace PADatabase.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240508212515_AssigmentStudent")]
+    partial class AssigmentStudent
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -265,9 +268,6 @@ namespace PADatabase.Migrations
                     b.Property<DateTime?>("DueDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<byte[]>("PdfData")
-                        .HasColumnType("varbinary(max)");
-
                     b.Property<bool?>("Status")
                         .HasColumnType("bit");
 
@@ -334,25 +334,6 @@ namespace PADatabase.Migrations
                     b.ToTable("CourseUsers");
                 });
 
-            modelBuilder.Entity("PADatabase.Models.PaymentUser", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<double>("payment")
-                        .HasColumnType("float");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("PaymentUsers");
-                });
-
             modelBuilder.Entity("PADatabase.Models.PdfFile", b =>
                 {
                     b.Property<Guid>("Id")
@@ -374,31 +355,6 @@ namespace PADatabase.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("PdfFiles");
-                });
-
-            modelBuilder.Entity("PADatabase.Models.Transaction", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<double?>("amount")
-                        .HasColumnType("float");
-
-                    b.Property<string>("comment")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateOnly?>("date_T")
-                        .HasColumnType("date");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Transactions");
                 });
 
             modelBuilder.Entity("Assignment", b =>
@@ -500,24 +456,6 @@ namespace PADatabase.Migrations
                         .IsRequired();
 
                     b.Navigation("Course");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("PADatabase.Models.PaymentUser", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("PADatabase.Models.Transaction", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
 
                     b.Navigation("User");
                 });

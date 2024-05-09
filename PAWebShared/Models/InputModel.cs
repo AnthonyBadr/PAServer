@@ -34,6 +34,9 @@ namespace ServerApp2.Models
 
         [Required]
         public string Role { get; set; }
+
+
+
     }
 
 }

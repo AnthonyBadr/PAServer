@@ -40,7 +40,7 @@ namespace ServerApp2.Areas.Identity.Pages.Account
             SignInManager<IdentityUser> signInManager,
             ILogger<RegisterModel> logger,
             IEmailSender emailSender)
-        {
+        {   
             _userManager = userManager;
             _roleManager = roleManager; // Initialize it
             _userStore = userStore;
@@ -69,7 +69,7 @@ namespace ServerApp2.Areas.Identity.Pages.Account
             if (ModelState.IsValid)
             {
                 var user = CreateUser();
-
+                
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
                 var result = await _userManager.CreateAsync(user, Input.Password);

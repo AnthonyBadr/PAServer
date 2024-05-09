@@ -1,0 +1,12 @@
+﻿@page "/whiteboard"
+<body>
+    <div style="width: 600px; height: 550px;" id="wt-container"></div>
+
+    <script src="https://www.whiteboard.team/dist/api.js"></script>
+    <script type="text/javascript">
+        var wt = new api.WhiteboardTeam('#wt-container', {
+            clientId: 'ecdbc3061d7c9b95214c52c1074082cc',
+            boardCode: '121212232443556566576768787'
+        });
+    </script>
+</body>

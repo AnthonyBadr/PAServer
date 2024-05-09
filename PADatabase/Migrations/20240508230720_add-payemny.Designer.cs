@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PADatabase;
 
@@ -11,9 +12,11 @@ using PADatabase;
 namespace PADatabase.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240508230720_add-payemny")]
+    partial class addpayemny
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -376,31 +379,6 @@ namespace PADatabase.Migrations
                     b.ToTable("PdfFiles");
                 });
 
-            modelBuilder.Entity("PADatabase.Models.Transaction", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<double?>("amount")
-                        .HasColumnType("float");
-
-                    b.Property<string>("comment")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateOnly?>("date_T")
-                        .HasColumnType("date");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Transactions");
-                });
-
             modelBuilder.Entity("Assignment", b =>
                 {
                     b.HasOne("PADatabase.Models.Course", "Course")
@@ -505,15 +483,6 @@ namespace PADatabase.Migrations
                 });
 
             modelBuilder.Entity("PADatabase.Models.PaymentUser", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("PADatabase.Models.Transaction", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
                         .WithMany()

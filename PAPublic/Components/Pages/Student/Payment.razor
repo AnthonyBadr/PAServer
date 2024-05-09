@@ -1,0 +1,56 @@
+﻿@page "/Student/Payment"
+@using System.Security.Claims
+@inject ApplicationDbContext _context
+@inject NavigationManager _navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<h3>Payment</h3>
+
+<h1>@Sum</h1>
+
+@code {
+    private IList<Course> Course = new List<Course>();
+    private IList<CourseUser> CourseUser = new List<CourseUser>();
+    private PaymentUser payment = new PaymentUser();
+    private double Sum = 0;
+
+    string authid;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+        authid = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        CourseUser = _context.CourseUsers.Where(c => c.UserId == authid).ToList();
+
+        Refresh();
+    }
+
+    private async void Refresh()
+    {
+        foreach (var item in CourseUser)
+        {
+            Course? n = _context.Courses.FirstOrDefault(c => c.Id == item.CourseId);
+
+            Sum = n.Fee + Sum;
+        }
+
+        // Check if a payment record already exists for the user
+        var existingPayment = await _context.PaymentUsers.FirstOrDefaultAsync(p => p.UserId == authid);
+        if (existingPayment != null)
+        {
+            // Update the existing payment
+            existingPayment.payment = Sum;
+        }
+        else
+        {
+            // Create a new payment record
+            payment.payment = Sum;
+            payment.UserId = authid;
+            _context.PaymentUsers.Add(payment);
+        }
+
+        await _context.SaveChangesAsync();
+    }
+}

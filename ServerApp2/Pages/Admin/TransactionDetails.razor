@@ -1,0 +1,69 @@
+﻿<!-- TransactionDetails.razor -->
+@page "/transaction/{userId}"
+
+@using System;
+@using PADatabase.Models
+@using Microsoft.EntityFrameworkCore
+
+<h3>Transaction Details</h3>
+
+<form @onsubmit="HandleFormSubmit">
+    <input type="hidden" name="UserId" value="@UserId" />
+
+    <div>
+        <label for="date">Date:</label>
+        <input type="date" id="date" @bind="DummyTransaction.date_T" />
+    </div>
+
+    <div>
+        <label for="amount">Amount:</label>
+        <input type="number" id="amount" step="0.01" @bind="DummyTransaction.amount" />
+    </div>
+
+    <div>
+        <label for="comment">Comment:</label>
+        <input type="text" id="comment" @bind="DummyTransaction.comment" />
+    </div>
+
+    <button type="submit">Submit Transaction</button>
+</form>
+
+@if (SubmittedTransaction != null)
+{
+    <div>
+        <p>Transaction ID: @SubmittedTransaction.Id</p>
+        <p>Date: @SubmittedTransaction.date_T</p>
+        <p>Amount: @SubmittedTransaction.amount</p>
+        <p>Comment: @SubmittedTransaction.comment</p>
+    </div>
+}
+
+@code {
+    [Parameter] public string UserId { get; set; }
+    private Transaction DummyTransaction { get; set; } = new Transaction();
+    private Transaction SubmittedTransaction { get; set; }
+
+    // Inject your ApplicationDbContext here
+    [Inject] private ApplicationDbContext _context { get; set; }
+
+    private async Task HandleFormSubmit()
+    {
+        DummyTransaction.Id = Guid.NewGuid();
+        DummyTransaction.UserId = UserId; // Set the user ID
+
+        // Save the transaction details to the database
+        _context.Transactions.Add(DummyTransaction);
+        await _context.SaveChangesAsync();
+
+        // Update the payment amount in the PaymentUser table
+        var existingPaymentUser = await _context.PaymentUsers.FirstOrDefaultAsync(p => p.UserId == UserId);
+
+        if (existingPaymentUser != null)
+        {
+            existingPaymentUser.payment -= DummyTransaction.amount ?? 0; // Deduct the payment
+            await _context.SaveChangesAsync();
+        }
+
+        SubmittedTransaction = DummyTransaction;
+    }
+}

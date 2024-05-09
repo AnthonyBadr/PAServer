@@ -1,18 +1,27 @@
 ﻿@page "/AllCourse"
 @using Microsoft.AspNetCore.Components.Web.Extensions
-
 @using System.Security.Claims
 @inject ApplicationDbContext _context
 @inject NavigationManager _navigation
-@using Microsoft.JSInterop
-@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IJSRuntime JSRuntime
-<h1>Course to enroll in </h1>
-@if (Course.Any())
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<h1>Total Fee: @Sum</h1>
+
+<h1>Courses to Enroll In</h1>
+@if (UnenrolledCourses.Any())
 {
     <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Fee</th>
+                <th>Action</th>
+            </tr>
+        </thead>
         <tbody>
-            @foreach (var item in Course)
+            @foreach (var item in UnenrolledCourses)
             {
                 <tr>
                     <td>@item.Name</td>
@@ -28,11 +37,19 @@
 }
 
 <h1>Enrolled Courses</h1>
-@if (CoursErolled.Any())
+@if (EnrolledCourses.Any())
 {
     <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Fee</th>
+                <th>Action</th>
+            </tr>
+        </thead>
         <tbody>
-            @foreach (var item in CoursErolled)
+            @foreach (var item in EnrolledCourses)
             {
                 <tr>
                     <td>@item.Name</td>
@@ -47,73 +64,77 @@
     </table>
 }
 
-
 @code {
-
-
-    private IList<Course> Course = new List<Course>();
-    private IList<Course> CoursErolled = new List<Course>();
-    private CourseUser course_user = new CourseUser();
+    private double Sum = 0;
+    private List<Course> CoursesAll = new List<Course>();
+    private List<Course> UnenrolledCourses = new List<Course>();
+    private List<Course> EnrolledCourses = new List<Course>();
     private string userId;
-
-
-    private IList<CourseUser> courseuserenrolment = new List<CourseUser>();
-
 
     protected override async Task OnInitializedAsync()
     {
+        // Fetch all courses
+        CoursesAll = _context.Courses.ToList();
+
+        // Get the user's identity
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         userId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        
-        Course = _context.Courses.ToList();
 
+        // Refresh the data on page load
         RefreshData();
     }
 
     private void RefreshData()
     {
-        CoursErolled.Clear();
+        // Clear old data
+        EnrolledCourses.Clear();
+        UnenrolledCourses.Clear();
+        Sum = 0;
 
-        courseuserenrolment = _context.CourseUsers.Where(cu => cu.UserId == userId).ToList();
+        // Fetch the user's enrolled courses
+        var courseUserEnrollments = _context.CourseUsers.Where(cu => cu.UserId == userId).ToList();
 
-        @foreach (var item in courseuserenrolment)
+        // Get enrolled courses
+        foreach (var enrollment in courseUserEnrollments)
         {
-            Course? n = _context.Courses.FirstOrDefault(c => c.Id == item.CourseId);
-          
-            if (n != null)
-                CoursErolled.Add(n);
-
-          
+            var course = CoursesAll.FirstOrDefault(c => c.Id == enrollment.CourseId);
+            if (course != null)
+            {
+                EnrolledCourses.Add(course);
+                Sum += course.Fee;
+            }
         }
+
+        // Find unenrolled courses
+        var enrolledCourseIds = EnrolledCourses.Select(c => c.Id).ToList();
+        UnenrolledCourses = CoursesAll.Where(c => !enrolledCourseIds.Contains(c.Id)).ToList();
 
         StateHasChanged();
     }
 
-    private async void Enroll(Course item)
+    private async Task Enroll(Course course)
     {
-        CourseUser courseuser = new CourseUser();
-        courseuser.CourseId = item.Id;
-        courseuser.UserId = userId;
+        // Enroll the user in the selected course
+        var courseUser = new CourseUser
+            {
+                CourseId = course.Id,
+                UserId = userId
+            };
 
-        _context.CourseUsers.Add(courseuser);
+        _context.CourseUsers.Add(courseUser);
         await _context.SaveChangesAsync();
-        Course.Remove(item);
         RefreshData();
     }
 
-    private async void Drop(Guid id)
+    private async Task Drop(Guid courseId)
     {
-        CourseUser n = _context.CourseUsers.FirstOrDefault(c => c.CourseId == id);
-
-        if (n == null)
-            return;
-
-        // Add the dropped course back to the Course list
-        Course.Add(_context.Courses.FirstOrDefault(c => c.Id == id));
-
-        _context.CourseUsers.Remove(n);
-        await _context.SaveChangesAsync();
-
-        RefreshData();
+        // Find and remove the user's enrollment for the selected course
+        var courseUser = _context.CourseUsers.FirstOrDefault(cu => cu.CourseId == courseId && cu.UserId == userId);
+        if (courseUser != null)
+        {
+            _context.CourseUsers.Remove(courseUser);
+            await _context.SaveChangesAsync();
+            RefreshData();
+        }
     }
 }

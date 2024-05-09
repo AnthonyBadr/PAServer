@@ -26,11 +26,13 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddSignInManager()
     .AddDefaultUI();
-builder.Services.AddScoped<PdfService>();
+
+
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor().AddCircuitOptions(options => { options.DetailedErrors = true; });
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
-
+builder.Services.AddScoped<IPdfService,PdfService2>();
+builder.Services.AddScoped<ISubmittedFile, SubmitFileService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

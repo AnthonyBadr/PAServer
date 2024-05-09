@@ -1,0 +1,65 @@
+﻿@page "/AllStudents"
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<IdentityUser> UserManager
+@inject RoleManager<IdentityRole> RoleManager
+@inject ApplicationDbContext _context
+    @inject NavigationManager _navigation
+<h3>My Students</h3>
+
+@if (Students != null)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Payment Amount</th>
+                <th>Actions</th> <!-- New column for buttons -->
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var student in Students)
+            {
+                var paymentUser = PaymentUser.FirstOrDefault(p => p.UserId == student.Id);
+                <tr>
+                    <td>@student.Email</td>
+                    <td>@(paymentUser?.payment ?? 0)</td>
+                    <td>
+                        <button @onclick="() => NavigateToTransactionDetails(student.Id)">Make Transaction</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No students found.</p>
+}
+
+@code {
+    protected List<PaymentUser> PaymentUser { get; set; }
+    protected List<IdentityUser> Students { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var studentRole = await RoleManager.FindByNameAsync("Student");
+
+        if (studentRole != null)
+        {
+            Students = (await UserManager.GetUsersInRoleAsync(studentRole.Name)).ToList();
+            PaymentUser = _context.PaymentUsers.ToList();
+        }
+        else
+        {
+            // Handle the case when the "Student" role does not exist
+            // You can add appropriate error handling here
+        }
+    }
+    private void NavigateToTransactionDetails(string userId)
+    {
+        // Navigate to the TransactionDetails page with the user ID as a route parameter
+        _navigation.NavigateTo($"/transaction/{userId}");
+    }
+    
+}

@@ -33,33 +33,9 @@
 
     <script src="_framework/blazor.server.js"></script>
     <script src="_content/BlazorInputFile/inputfile.js"></script>
-    <script>
-        window.downloadFile = function (base64, fileName, contentType) {
-            try {
-                // Create a Blob from the base64 string
-                var byteCharacters = atob(base64);
-                var byteNumbers = new Array(byteCharacters.length);
-                for (var i = 0; i < byteCharacters.length; i++) {
-                    byteNumbers[i] = byteCharacters.charCodeAt(i);
-                }
-                var byteArray = new Uint8Array(byteNumbers);
-                var blob = new Blob([byteArray], { type: contentType });
+   
 
-                // Create a link element and simulate a click to download the file
-                var link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = fileName;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            } catch (e) {
-                console.error("Error downloading file:", e);
-                alert("Error downloading file: " + e.message);
-            }
-        }
-
-    }
-</script>
+<script src="~/myjs.js"></script>
 
 </body>
 </html>

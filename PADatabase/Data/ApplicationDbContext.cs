@@ -17,6 +17,12 @@ public class ApplicationDbContext : IdentityDbContext
     public DbSet<CourseUser> CourseUsers{ get; set; }
 
     public DbSet<Assignment> Assignments { get; set; }
+    public DbSet<AssigmentStudent> AssigmentStudent { get; set; }
+
+
+    public DbSet<PaymentUser> PaymentUsers { get; set; }
+
+    public DbSet<Transaction> Transactions { get; set; }
 
 }
 

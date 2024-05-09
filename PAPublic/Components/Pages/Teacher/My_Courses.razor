@@ -1,0 +1,38 @@
+﻿@page "/Teacher/Mycourses"
+@using System.Security.Claims
+@inject ApplicationDbContext _context
+@inject NavigationManager _navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<h1>Courses</h1>
+
+<table class="table">
+    <tbody>
+        @foreach (var item in Course)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.Description</td>
+                <td>@item.Fee</td>
+                <td>
+                    <a href="/Course/Assigment/@item.Id">Assigment</a>
+                    <a href="/MyCourses/MyStudents/@item.Id">View My Students</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private IList<Course> Course = new List<Course>();
+    private IList<CourseUser> CourseUser = new List<CourseUser>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        string authid = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        Course = _context.Courses.Where(c => c.UserId == authid).ToList();
+        CourseUser = _context.CourseUsers.Where(c => c.UserId == authid).ToList();
+    }
+}

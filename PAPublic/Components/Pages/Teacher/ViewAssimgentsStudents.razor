@@ -1,0 +1,62 @@
+﻿@page "/MyStudent/Assignment/{IDS:guid}/{IDC:guid}"
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@inject UserManager<IdentityUser> UserManager
+@inject ApplicationDbContext _context
+@inject NavigationManager _navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime jsRuntime
+<h3>ViewAssignmentsStudents</h3>
+
+<table class="table">
+    <tbody>
+        @foreach (var item in AssignmentsSubmitted)
+        {
+            <tr>
+                <td>@item.comments</td>
+
+                <td>
+
+                    @if (item.PdfData != null)
+                    {
+                        <button class="btn btn-primary" @onclick="() => DownloadPdf(item.Id)">Download PDF</button>
+                        
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    [Parameter]
+    public Guid IDS { get; set; }
+
+    [Parameter]
+    public Guid IDC { get; set; }
+
+    protected List<AssigmentStudent> AssignmentsSubmitted { get; set; } = new List<AssigmentStudent>();
+    protected List<Assignment> Assignment { get; set; } = new List<Assignment>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var uid = IDS.ToString();
+
+        AssignmentsSubmitted = await _context.AssigmentStudent
+            .Include(a => a.Assignment) // Include the Assignment entity
+            .Where(c => c.UserId == uid && c.Assignment.CourseId == IDC)
+            .ToListAsync();
+    }
+
+
+    private async Task DownloadPdf(Guid assignmentId)
+    {
+        var assignment = AssignmentsSubmitted.FirstOrDefault(x => x.Id == assignmentId);
+        if (assignment != null && assignment.PdfData != null)
+        {
+            await jsRuntime.InvokeVoidAsync("saveAsFile", assignment.comments + ".pdf", Convert.ToBase64String(assignment.PdfData));
+        }
+
+    }
+}
