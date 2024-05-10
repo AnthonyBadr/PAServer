@@ -4,9 +4,23 @@
 @inject NavigationManager _navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
-<h3>Payment</h3>
-
-<h1>@Sum</h1>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title text-center">Payment Summary</h3>
+                    <hr />
+                    <div class="text-center my-4">
+                        <h1 class="display-4">@Sum.ToString("C")</h1>
+                        <p>Total Amount Due</p>
+                    </div>
+                   
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 @code {
     private IList<Course> Course = new List<Course>();

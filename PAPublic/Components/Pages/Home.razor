@@ -3,10 +3,76 @@
 @inject NavigationManager Navigation
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<style>
+    .homepage-background {
+        background-image: url('/images/image.jpg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-Welcome to your new app.
+    .homepage-content {
+        background-color: rgba(255, 255, 255, 0.9);
+        border-radius: 10px;
+        padding: 40px;
+        text-align: center;
+        max-width: 700px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    h1 {
+        font-size: 3rem;
+        margin-bottom: 20px;
+        color: #4a148c;
+    }
+
+    h2 {
+        font-size: 1.75rem;
+        margin-bottom: 15px;
+        color: #6a1b9a;
+    }
+
+    p {
+        font-size: 1.25rem;
+        color: #4a148c;
+    }
+
+    .cta-button {
+        background-color: #6a1b9a;
+        border: none;
+        color: #fff;
+        padding: 10px 20px;
+        font-size: 1.25rem;
+        margin-top: 20px;
+        border-radius: 5px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        text-decoration: none;
+    }
+
+        .cta-button:hover {
+            background-color: #4a148c;
+            color: #fff;
+            text-decoration: none;
+        }
+</style>
+
+<div class="homepage-background">
+    <div class="homepage-content">
+        <h1>Welcome to Your Learning Hub</h1>
+        <h2>Empower Your Knowledge, Excel in Your Journey</h2>
+        <p>
+            Unlock the potential of personalized education with our online tutoring platform.
+            Whether you're looking to master new subjects or need guidance on your educational journey,
+            we're here to help you achieve your goals.
+        </p>
+        
+    </div>
+</div>
 
 @code {
- 
+
 }

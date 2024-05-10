@@ -1,66 +1,60 @@
-﻿    @page "/Course/Edit/{ID:guid}"
-    @using Microsoft.AspNetCore.Identity
+﻿@page "/Course/Edit/{ID:guid}"
+@using Microsoft.AspNetCore.Identity
+@inject ApplicationDbContext _context
+@inject NavigationManager _navigation
+@inject RoleManager<IdentityRole> _roleManager
+@inject UserManager<IdentityUser> UserManager
 
-    @inject ApplicationDbContext _context
-    @inject NavigationManager _navigation
-    @inject RoleManager<IdentityRole> _roleManager
-    @inject UserManager<IdentityUser> UserManager
+<h1 class="mt-4 mb-4">Edit Course</h1>
 
-    <h3>CoursePageEdit</h3>
+<h4>Course Information</h4>
+<hr />
 
-    <h1>Edit</h1>
+@if (course == null)
+{
+    <div class="alert alert-danger">Course doesn't exist.</div>
+}
+else
+{
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <EditForm Model="@course" OnValidSubmit="UpdateCourse">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <div class="form-group mb-3">
+                    <label for="Name" class="form-label">Name</label>
+                    <InputText id="Name" @bind-Value="course.Name" class="form-control" />
+                    <ValidationMessage For="@(() => course.Name)" class="text-danger" />
+                </div>
+                <div class="form-group mb-3">
+                    <label for="Description" class="form-label">Description</label>
+                    <InputText id="Description" @bind-Value="course.Description" class="form-control" />
+                    <ValidationMessage For="@(() => course.Description)" class="text-danger" />
+                </div>
+                <div class="form-group mb-3">
+                    <label for="Fee" class="form-label">Fee</label>
+                    <InputNumber id="Fee" @bind-Value="course.Fee" class="form-control" />
+                    <ValidationMessage For="@(() => course.Fee)" class="text-danger" />
+                </div>
 
-    <h4>Course</h4>
-    <hr />
+                <div class="form-group mb-3">
+                    <label for="UserId" class="form-label">Teacher</label>
+                    <InputSelect id="UserId" @bind-Value="course.UserId" class="form-control">
+                        <option value="">--</option>
+                        @foreach (var user in Teachers)
+                        {
+                            <option value="@user.Id">@user.UserName</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => course.UserId)" class="text-danger" />
+                </div>
 
-    @if (course == null)
-    {
-        <div>Course doesn't exist</div>
-    }
-    else
-    {
-        <div class="row">
-            <div class="col-md-4">
-                <EditForm Model="@course" OnValidSubmit="UpdateCourse">
-                    <DataAnnotationsValidator />
-                    <div class="form-group">
-                        <label for="Name">Name</label>
-                        <InputText id="Name" @bind-Value="course.Name" class="form-control" />
-                        <ValidationMessage For="@(() => course.Name)" />
-                    </div>
-                    <div class="form-group">
-                        <label for="Description">Description</label>
-                        <InputText id="Description" @bind-Value="course.Description" class="form-control" />
-                        <ValidationMessage For="@(() => course.Description)" />
-                    </div>
-                    <div class="form-group">
-                        <label for="Fee">Fee</label>
-                        <InputNumber id="Fee" @bind-Value="course.Fee" class="form-control" />
-                        <ValidationMessage For="@(() => course.Fee)" />
-                    </div>
-
-                    <div class="form-group">
-                        <label for="UserId">Teacher</label>
-                        <br />
-                        <InputSelect id="UserId" @bind-Value="course.UserId">
-                            <option value="">--</option>
-                            @foreach (var user in Teachers)
-                            {
-                                <option value="@user.Id">@user.UserName</option>
-                            }
-                        </InputSelect>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary">Save</button>
-                </EditForm>
-            </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+                <a href="Index" class="btn btn-secondary ms-2">Back to List</a>
+            </EditForm>
         </div>
-    }
-
-    <div>
-        <a href="Index">Back to List</a>
     </div>
-
+}
     @code {
         private Course? course;
 

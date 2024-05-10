@@ -1,32 +1,47 @@
 ﻿@page "/Course"
+@inject ApplicationDbContext _context
+@inject NavigationManager _navigation
 
-    @inject ApplicationDbContext _context
-    @inject NavigationManager _navigation
-
-<h1>Courses</h1>
+<h1 class="mt-4 mb-4">Courses</h1>
 
 <p>
-    <a href="Course/Create">Create New</a>
+    <a href="Course/Create" class="btn btn-primary">Create New Course</a>
 </p>
 
-<table class="table">
-    <tbody>
-        @foreach (var item in Course)
-        {
-            <tr>
-                <td>@item.Name</td>
-                <td>@item.Description</td>
-                <td>@item.Fee</td>
-                <td>
-                    <a href="/Course/Edit/@item.Id">Edit</a> |
-                    <a href="/Course/@item.Id">Details</a> |
-                    <a href="/Course/Delete/@item.Id">Delete</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
-
+@if (Course != null && Course.Any())
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered shadow-sm">
+            <thead class="table-light">
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Fee</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Course)
+                {
+                    <tr>
+                        <td>@item.Name</td>
+                        <td>@item.Description</td>
+                        <td>@item.Fee.ToString("C")</td>
+                        <td>
+                            <a href="/Course/Edit/@item.Id" class="btn btn-primary btn-sm me-2">Edit</a>
+                            <a href="/Course/@item.Id" class="btn btn-info btn-sm me-2">Details</a>
+                            <a href="/Course/Delete/@item.Id" class="btn btn-danger btn-sm">Delete</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="alert alert-warning">No courses found.</div>
+}
 @code {
     private IList<Course> Course = new List<Course>();
 

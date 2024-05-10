@@ -1,36 +1,48 @@
 ﻿    @page "/Course/{ID:guid}"
-    @using Microsoft.EntityFrameworkCore
-    @inject ApplicationDbContext _context
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext _context
 
-    <h1>Details</h1>
+<h1 class="mt-4 mb-4">Course Details</h1>
 
-    @if (course != null)
-    {
-        <div>
-            <h4>Course</h4>
+@if (course != null)
+{
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <h4 class="card-title">Course Information</h4>
             <hr />
             <dl class="row">
-                <dt class="col-sm-2">Name</dt>
-                <dd class="col-sm-10">@course.Name</dd>
-                <dt class="col-sm-2">Description</dt>
-                <dd class="col-sm-10">@course.Description</dd>
-                <dt class="col-sm-2">Fee</dt>
-                <dd class="col-sm-10">@course.Fee</dd>
+                <dt class="col-sm-3">Name</dt>
+                <dd class="col-sm-9">@course.Name</dd>
+                <dt class="col-sm-3">Description</dt>
+                <dd class="col-sm-9">@course.Description</dd>
+                <dt class="col-sm-3">Fee</dt>
+                <dd class="col-sm-9">@course.Fee.ToString("C")</dd>
             </dl>
+            <div>
+                <a href="Edit/@course.Id" class="btn btn-primary me-2">Edit</a>
+                <a href="Index" class="btn btn-secondary">Back to List</a>
+            </div>
         </div>
-        <div>
-            <a href="Edit/@course.Id">Edit</a> |
-            <a href="Index">Back to List</a>
-        </div>
+    </div>
 
-        <h4>Enrolled Users</h4>
-        <ul>
-            @foreach (var user in _context.CourseUsers.Select(uc => uc.User))
-            {
-                <li>@user.UserName</li>
-            }
-        </ul>
-    }
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h4 class="card-title">Enrolled Users</h4>
+            <hr />
+            <ul class="list-group">
+                @foreach (var user in _context.CourseUsers.Select(uc => uc.User))
+                {
+                    <li class="list-group-item">@user.UserName</li>
+                }
+            </ul>
+        </div>
+    </div>
+}
+else
+{
+    <div class="alert alert-warning">Course not found.</div>
+}
+
 
     @code {
         private Course? course = new Course();

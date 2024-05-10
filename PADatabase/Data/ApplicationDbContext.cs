@@ -24,6 +24,9 @@ public class ApplicationDbContext : IdentityDbContext
 
     public DbSet<Transaction> Transactions { get; set; }
 
+
+
+
 }
 
 

@@ -4,24 +4,33 @@
 @inject NavigationManager _navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
-<h1>Courses</h1>
+<h1 class="mt-4 mb-4">My Courses</h1>
 
-<table class="table">
+<table class="table table-striped table-bordered shadow-sm">
+    <thead class="table-light">
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Fee</th>
+            <th>Action</th>
+        </tr>
+    </thead>
     <tbody>
         @foreach (var item in Course)
         {
             <tr>
                 <td>@item.Name</td>
                 <td>@item.Description</td>
-                <td>@item.Fee</td>
+                <td>@item.Fee.ToString("C")</td>
                 <td>
-                    <a href="/Course/Assigment/@item.Id">Assigment</a>
-                    <a href="/MyCourses/MyStudents/@item.Id">View My Students</a>
+                    <a href="/Course/Assigment/@item.Id" class="btn btn-primary me-2">Assignment</a>
+                    <a href="/MyCourses/MyStudents/@item.Id" class="btn btn-secondary">View My Students</a>
                 </td>
             </tr>
         }
     </tbody>
 </table>
+
 
 @code {
     private IList<Course> Course = new List<Course>();

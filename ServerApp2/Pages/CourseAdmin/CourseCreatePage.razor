@@ -3,38 +3,34 @@
 @inject NavigationManager _navigation
 @inject ApplicationDbContext _context
 
-<h1>Create</h1>
+<h1 class="mt-4 mb-4">Create New Course</h1>
 
-<h4>Course</h4>
+<h4>Course Details</h4>
 <hr />
-<div class="row">
-    <div class="col-md-4">
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
         <EditForm Model="@course" OnValidSubmit="CreateCourse">
             <DataAnnotationsValidator />
-            <div class="form-group">
-                <label for="Name">Name</label>
+            <div class="form-group mb-3">
+                <label for="Name" class="form-label">Name</label>
                 <InputText id="Name" @bind-Value="course.Name" class="form-control" />
-                <ValidationMessage For="@(() => course.Name)" />
+                <ValidationMessage For="@(() => course.Name)" class="text-danger" />
             </div>
-            <div class="form-group">
-                <label for="Description">Description</label>
+            <div class="form-group mb-3">
+                <label for="Description" class="form-label">Description</label>
                 <InputText id="Description" @bind-Value="course.Description" class="form-control" />
-                <ValidationMessage For="@(() => course.Description)" />
+                <ValidationMessage For="@(() => course.Description)" class="text-danger" />
             </div>
-            <div class="form-group">
-                <label for="Fee">Fee</label>
+            <div class="form-group mb-3">
+                <label for="Fee" class="form-label">Fee</label>
                 <InputNumber id="Fee" @bind-Value="course.Fee" class="form-control" />
-                <ValidationMessage For="@(() => course.Fee)" />
+                <ValidationMessage For="@(() => course.Fee)" class="text-danger" />
             </div>
             <button type="submit" class="btn btn-primary">Create</button>
+            <a href="Index" class="btn btn-secondary ms-2">Back to Courses</a>
         </EditForm>
     </div>
 </div>
-
-<div>
-    <a href="Index">Back to Courses</a>
-</div>
-
 @code {
     private Course course = new Course();
 
