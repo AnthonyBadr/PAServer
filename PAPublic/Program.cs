@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+
 using PADatabase;
+using Microsoft.Extensions.DependencyInjection;
 using PAPublic;
 using PAPublic.Components;
 using ServerApp2.Areas.Identity;

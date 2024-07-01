@@ -1,0 +1,57 @@
+﻿@page "/UserPersonalDetails/Create"
+
+@inject NavigationManager _navigation
+@inject ApplicationDbContext _context
+
+<h1 class="mt-4 mb-4">Create New Course</h1>
+
+<h4>UserPersonalDetails</h4>
+<hr />
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <EditForm Model="@UserPersonalDetails" OnValidSubmit="CreateUserPersonalDetails">
+            <DataAnnotationsValidator />
+            <div class="form-group mb-3">
+                <label for="FirstName" class="form-label">First Name</label>
+                <InputText id="FirstName" @bind-Value="UserPersonalDetails.FirstName" class="form-control" />
+                <ValidationMessage For="@(() => UserPersonalDetails.FirstName)" class="text-danger" />
+            </div>
+            <div class="form-group mb-3">
+                <label for="LastName" class="form-label">Last Name</label>
+                <InputText id="LastName" @bind-Value="UserPersonalDetails.LastName" class="form-control" />
+                <ValidationMessage For="@(() => UserPersonalDetails.LastName)" class="text-danger" />
+            </div>
+            <div class="form-group mb-3">
+                <label for="PhoneNumber" class="form-label">Phone Number</label>
+                <InputText id="PhoneNumber" @bind-Value="UserPersonalDetails.PhoneNumber" class="form-control" />
+                <ValidationMessage For="@(() => UserPersonalDetails.PhoneNumber)" class="text-danger" />
+            </div>
+            <div class="form-group mb-3">
+                <label for="Gender" class="form-label">Gender</label>
+                <InputText id="Gender" @bind-Value="UserPersonalDetails.Gender" class="form-control" />
+                <!-- Add validation if needed -->
+            </div>
+            <div class="form-group mb-3">
+                <label for="DateOfBirth" class="form-label">Date of Birth</label>
+                <InputDate id="DateOfBirth" @bind-Value="UserPersonalDetails.DateOfBirth" class="form-control" />
+                <!-- Add validation if needed -->
+            </div>
+
+
+
+            <button type="submit" class="btn btn-primary">Create</button>
+            <a href="Index" class="btn btn-secondary ms-2">Back to Courses</a>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private UserPersonalDetails UserPersonalDetails = new UserPersonalDetails();
+
+    private async Task CreateUserPersonalDetails()
+    {
+        _context.UserPersonalDetails.Add(UserPersonalDetails);
+        await _context.SaveChangesAsync();
+        _navigation.NavigateTo("Course");
+    }
+}

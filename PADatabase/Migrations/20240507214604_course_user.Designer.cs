@@ -60,7 +60,7 @@ namespace PADatabase.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ClaimType")
+                    Microsoft.EntityFrameworkCore.Metadata.Builders.PropertyBuilder<string> propertyBuilder = b.Property<string>("ClaimType")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ClaimValue")
