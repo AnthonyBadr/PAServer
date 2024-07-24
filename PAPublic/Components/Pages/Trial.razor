@@ -1,0 +1,112 @@
+﻿@page "/test"
+
+<div style="display: flex;">
+    <h4 style="margin-right: 10px;">Selected Items:</h4>
+    @foreach (var selectedItem in GetSelectedItems())
+    {
+        <p style="margin-right: 10px;">@selectedItem.Name</p>
+    }
+</div>
+
+@if (IsDropdownOpen)
+{
+    <div class="dropdown">
+        <button @onclick="ToggleDropdown">Toggle Dropdown</button>
+        <div class="dropdown-content">
+            <div class="scroll-box">
+                @if (Items != null && Items.Any())
+                {
+                    @foreach (var item in Items)
+                    {
+                        <div class="checklist-item">
+                            <input type="checkbox" @bind="@item.IsChecked" />
+                            <label>@item.Name</label>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p>No items to display.</p>
+                }
+            </div>
+
+           
+        </div>
+    </div>
+ 
+}
+else
+{
+    <button @onclick="ToggleDropdown">Toggle Dropdown</button>
+}
+
+
+<style>
+    /* Inline CSS for ChecklistDropdown component */
+    .dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .dropdown-content {
+        display: block;
+        position: absolute;
+        background-color: #f9f9f9;
+        min-width: 200px;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        z-index: 1;
+        max-height: 200px; /* Max height of the dropdown content */
+        overflow-y: auto; /* Enable vertical scrollbar */
+    }
+
+    .scroll-box {
+        padding: 10px;
+    }
+
+    .checklist-item {
+        margin-bottom: 5px;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public List<ChecklistItem> Items { get; set; }
+
+    private bool IsDropdownOpen { get; set; }
+
+    protected override void OnInitialized()
+    {
+        // Example dummy data
+        Items = new List<ChecklistItem>
+        {
+            new ChecklistItem { Name = "Task 1", IsChecked = false },
+            new ChecklistItem { Name = "Task 2", IsChecked = false },
+            new ChecklistItem { Name = "Task 3", IsChecked = false },
+            new ChecklistItem { Name = "Task 4", IsChecked = false },
+            new ChecklistItem { Name = "Task 5", IsChecked = false },
+            new ChecklistItem { Name = "Task 6", IsChecked = false },
+            new ChecklistItem { Name = "Task 7", IsChecked = false },
+            new ChecklistItem { Name = "Task 8", IsChecked = false },
+            new ChecklistItem { Name = "Task 9", IsChecked = false },
+            new ChecklistItem { Name = "Task 10", IsChecked = false },
+            new ChecklistItem { Name = "Task 11", IsChecked = false },
+            new ChecklistItem { Name = "Task 12", IsChecked = false },
+        };
+    }
+
+    private void ToggleDropdown()
+    {
+        IsDropdownOpen = !IsDropdownOpen;
+    }
+
+    public IEnumerable<ChecklistItem> GetSelectedItems()
+    {
+        return Items.Where(item => item.IsChecked);
+    }
+
+    public class ChecklistItem
+    {
+        public string Name { get; set; }
+        public bool IsChecked { get; set; }
+    }
+}

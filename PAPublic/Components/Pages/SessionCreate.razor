@@ -1,0 +1,339 @@
+﻿@page "/Session/Create"
+<h3>Add Package Code List</h3>
+@using PADatabase.Models
+@using PADatabase.Forms
+@using Microsoft.AspNetCore.Identity
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager _navigation
+@inject ApplicationDbContext _context
+@inject RoleManager<IdentityRole> _roleManager
+@inject UserManager<IdentityUser> UserManager
+@using System.Security.Claims
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+
+        <div style="display: flex;">
+            <h4 style="margin-right: 10px;">Selected Items:</h4>
+            @foreach (var selectedItem in GetSelectedItems())
+            {
+                <p style="margin-right: 10px;">@selectedItem.StudentDetails.FirstName</p>
+            }
+        </div>
+
+        @if (IsDropdownOpen)
+        {
+            <div class="dropdown">
+                <button @onclick="ToggleDropdown">Toggle Dropdown</button>
+                <div class="dropdown-content">
+                    <div class="scroll-box">
+                        @if (UserPersonalDetailsList != null && UserPersonalDetailsList.Any())
+                        {
+                            @foreach (var item in UserPersonalDetailsList)
+                            {
+                                <div class="checklist-item">
+                                    <input type="checkbox" @bind="item.IsChecked" />
+                                    <label>@item.StudentDetails.FirstName</label>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <p>No items to display.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <button @onclick="ToggleDropdown">Toggle Dropdown</button>
+        }
+
+
+
+
+        <EditForm Model="@Session" OnValidSubmit="CreateSession">
+            <DataAnnotationsValidator />
+
+            <div class="form-group mb-3">
+                <label for="Description" class="form-label">Description</label>
+                <InputText id="description" @bind-Value="Session.description" class="form-control" />
+                <ValidationMessage For="@(() => Session.description)" class="text-danger" />
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="Location" class="form-label">Location</label>
+                <InputText id="location" @bind-Value="Session.Location" class="form-control" />
+                <ValidationMessage For="@(() => Session.Location)" class="text-danger" />
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="DateofLesson" class="form-label">Location</label>
+                <InputDate id="DateofLesson" @bind-Value="Session.DateofLesson" class="form-control" />
+                <ValidationMessage For="@(() => Session.DateofLesson)" class="text-danger" />
+            </div>
+            <div class="form-group mb-3">
+                <label for="StartTime" class="form-label">Start Time of Lesson</label>
+                <input id="StartTime" type="time" @bind="Session.StartTime" class="form-control" />
+                <ValidationMessage For="@(() => Session.StartTime)" class="text-danger" />
+            </div>
+
+            <div class="form-group mb-3">
+                <label class="form-label">Time Difference</label>
+                <p>@TimeDifferenceInHours</p>
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="EndTime" class="form-label">EndTime Time of Lesson</label>
+                <input id="EndTime" type="time" @bind="Session.EndTime" class="form-control" />
+                <ValidationMessage For="@(() => Session.EndTime)" class="text-danger" />
+            </div>
+
+           //here 
+            
+            <div class="form-group mb-3">
+                <label for="PackageCodeListId" class="form-label">Package Code</label>
+                <select id="packageCodeListId" @bind="@Session.PackageCodeListId" class="form-control">
+                    @foreach (var packageCode in PackageCodeList)
+                    {
+                        <option value="@packageCode.Id">@packageCode.Pckg_Name</option>
+                    }
+                </select>
+                <ValidationMessage For="@(() => Session.PackageCodeListId)" class="text-danger" />
+            </div>
+
+
+            <button type="submit" class="btn btn-primary">Create</button>
+            <a href="Index" class="btn btn-secondary ms-2">Back to Courses</a>
+        </EditForm>
+            <!-- Dropdown Section -->
+         
+
+           
+
+    </div>
+</div>
+
+<style>
+    /* Inline CSS for ChecklistDropdown component */
+    .dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .dropdown-content {
+        display: block;
+        position: absolute;
+        background-color: #f9f9f9;
+        min-width: 200px;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        z-index: 1;
+        max-height: 200px; /* Max height of the dropdown content */
+        overflow-y: auto; /* Enable vertical scrollbar */
+    }
+
+    .scroll-box {
+        padding: 10px;
+    }
+
+    .checklist-item {
+        margin-bottom: 5px;
+    }
+</style>
+@code {
+    private Session Session = new Session();
+    private IList<PackageCodeList> PackageCodeList = new List<PackageCodeList>();
+    protected List<Studentform> selectedStduentsafterChecking { get; set; } = new List<Studentform>();
+    protected List<Studentform> StudentsFormList { get; set; } = new List<Studentform>();
+    public List<DetailsForm> UserPersonalDetailsList { get; set; } = new List<DetailsForm>();
+    public List<DetailsForm> selectedUserDetails { get; set; } = new List<DetailsForm>();
+    protected List<string> selectedStudentIds { get; set; } = new List<string>();
+    public SessionStudent sessionUser { get; set; }
+    string authid;
+    public double Sum { get; set; } 
+    // Dropdown functionality
+    private bool IsDropdownOpen { get; set; }
+
+
+    // Computed property to calculate time difference in hours
+    private double TimeDifferenceInHours
+    {
+        get
+        {
+            if (Session.StartTime == TimeOnly.MinValue || Session.EndTime == TimeOnly.MinValue)
+            {
+                return 0;
+            }
+            else
+            {
+                var timeDiff = Session.EndTime - Session.StartTime;
+                return timeDiff.TotalHours;
+            }
+        }
+    }
+
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        authid = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        Session.DateofLesson = DateOnly.FromDateTime(DateTime.Now);
+
+        PackageCodeList = _context.PackageCodeLists.ToList();
+
+        var studentRole = await _roleManager.Roles.SingleOrDefaultAsync(r => r.Name == "Student");
+        if (studentRole != null)
+        {
+            var students = (await UserManager.GetUsersInRoleAsync(studentRole.Name)).ToList();
+            var studentIds = (await UserManager.GetUsersInRoleAsync(studentRole.Name)).Select(u => u.Id).ToList();
+            var userDetails = await _context.UserPersonalDetails
+      .Where(upd => studentIds.Contains(upd.UserId))
+      .ToListAsync();
+
+
+            foreach (var x in userDetails)
+            {
+                var detial = new DetailsForm
+                    {
+                        StudentDetails = x,
+                        IsChecked = false
+                    };
+                UserPersonalDetailsList.Add(detial);
+            }
+
+
+            StudentsFormList = students.Select(student => new Studentform(student, false)).ToList();
+
+
+        }
+    }
+
+    private void ToggleDropdown()
+    {
+        IsDropdownOpen = !IsDropdownOpen;
+    }
+
+
+    public List<DetailsForm> GetSelectedItems()
+    {
+        selectedStduentsafterChecking = StudentsFormList.Where(item => item.IsChecked).ToList();
+        selectedUserDetails = UserPersonalDetailsList.Where(item => item.IsChecked).ToList();
+        return selectedUserDetails;
+    }
+
+
+    private void OnStudentCheckedChanged(DetailsForm DetailsForm)
+    {
+        if (DetailsForm.IsChecked)
+        {
+            if (!selectedStudentIds.Contains(DetailsForm.StudentDetails.UserId))
+            {
+                selectedStudentIds.Add(DetailsForm.StudentDetails.UserId);
+            }
+        }
+        else
+        {
+            if (selectedStudentIds.Contains(DetailsForm.StudentDetails.UserId))
+            {
+                selectedStudentIds.Remove(DetailsForm.StudentDetails.UserId);
+            }
+        }
+    }
+
+    private async Task CreateSession()
+    {
+        try
+        {
+            Session.UserId = authid;
+            _context.Sessions.Add(Session);
+            await _context.SaveChangesAsync();
+
+            var upd = _context.UserPersonalDetails.Where(x => x.UserId == authid).FirstOrDefault();
+
+            // Assuming `upd` is an instance of UserPersonalDetails
+            upd.numberOfHours = TimeDifferenceInHours;
+
+            foreach (var studentId in selectedUserDetails)
+            {
+                sessionUser = new SessionStudent
+                {
+                    UserId = studentId.StudentDetails.UserId,
+                    SessionId = Session.Id,
+                     Session = Session
+                };
+
+                _context.SessionStudents.Add(sessionUser);
+
+            }
+            Sum = 0;
+            for (int i = 0; i < selectedUserDetails.Count(); i++)
+            {
+                 
+                Sum = Sum+ sessionUser.Session.PackageCodeList.Price * (1 - (sessionUser.Session.PackageCodeList.percentBTAC + sessionUser.Session.PackageCodeList.percentLES));
+            }
+
+
+
+         
+
+                if (_context.UserSummaries.Where(x => x.UserId == authid && x.Status == "Pending").Count()==0)
+                {
+                    var userSummary = new UserSummaries(
+                         id: Guid.NewGuid(),                
+                         userId: authid,
+                     money: Sum,
+                         paymentNumber: 1,                
+                         nbHours:TimeDifferenceInHours,                    
+                         status: "Pending"
+                    );
+                    _context.UserSummaries.Add(userSummary);
+
+                }
+                else
+                {
+                    var us = _context.UserSummaries.Where(x => x.UserId == authid && x.Status=="Pending").FirstOrDefault();
+                us.Money = us.Money + Sum;
+
+                }
+
+
+
+
+
+          
+
+
+          
+         
+
+
+
+            await _context.SaveChangesAsync();
+            _navigation.NavigateTo("Index");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error creating session: {ex.Message}");
+        }
+    }
+
+    public class Studentform
+    {
+        public IdentityUser Student { get; set; }
+        public bool IsChecked { get; set; }
+
+        // Constructor to initialize the properties
+        public Studentform(IdentityUser student, bool isChecked)
+        {
+            Student = student;
+            IsChecked = isChecked;
+        }
+
+        // Default constructor
+        public Studentform() { }
+    }
+}

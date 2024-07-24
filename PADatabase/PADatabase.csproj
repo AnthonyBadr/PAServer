@@ -16,4 +16,8 @@
     <PackageReference Include="Quick.AspNetCore.Components.Web.Extensions" Version="6.0.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Migrations\" />
+  </ItemGroup>
+
 </Project>

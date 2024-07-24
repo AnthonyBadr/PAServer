@@ -1,0 +1,84 @@
+﻿@page "/PackageCodeList/Edit/{ID:guid}"
+@using Microsoft.AspNetCore.Identity
+@inject ApplicationDbContext _context
+@inject NavigationManager _navigation
+@inject RoleManager<IdentityRole> _roleManager
+@inject UserManager<IdentityUser> UserManager
+
+<h1 class="mt-4 mb-4">Edit Course</h1>
+
+<h4>Course Information</h4>
+<hr />
+
+@if (PackageCodeList == null)
+{
+    <div class="alert alert-danger">Course doesn't exist.</div>
+}
+else
+{
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <EditForm Model="@PackageCodeList" OnValidSubmit="UpdatePackage">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <div class="form-group mb-3">
+                    <label for="Pckg_Name" class="form-label">Name</label>
+                    <InputText id="Pckg_Name" @bind-Value="PackageCodeList.Pckg_Name" class="form-control" />
+                    <ValidationMessage For="@(() => PackageCodeList.Pckg_Name)" class="text-danger" />
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="Description" class="form-label">Description</label>
+                    <InputText id="Description" @bind-Value="PackageCodeList.Description" class="form-control" />
+                    <ValidationMessage For="@(() => PackageCodeList.Description)" class="text-danger" />
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="Description" class="form-label">Price</label>
+                    <InputNumber id="Price" @bind-Value="PackageCodeList.Price" class="form-control" />
+                    <ValidationMessage For="@(() => PackageCodeList.Price)" class="text-danger" />
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="Description" class="form-label">percentLES</label>
+                    <InputNumber id="Price" @bind-Value="PackageCodeList.percentLES" class="form-control" />
+                    <ValidationMessage For="@(() => PackageCodeList.percentLES)" class="text-danger" />
+                </div>
+
+
+                <div class="form-group mb-3">
+                    <label for="Description" class="form-label">percentBTAC</label>
+                    <InputNumber id="Price" @bind-Value="PackageCodeList.percentBTAC" class="form-control" />
+                    <ValidationMessage For="@(() => PackageCodeList.percentBTAC)" class="text-danger" />
+                </div>
+
+                
+                <button type="submit" class="btn btn-primary">Save</button>
+                <a href="Index" class="btn btn-secondary ms-2">Back to List</a>
+            </EditForm>
+        </div>
+    </div>
+}
+@code {
+    private PackageCodeList? PackageCodeList;
+
+    [Parameter]
+    public Guid ID { get; set; }
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        PackageCodeList = await _context.PackageCodeLists.FirstOrDefaultAsync(m => m.Id == ID);
+    }
+
+    private async Task UpdatePackage()
+    {
+      
+
+        _context.Update(PackageCodeList);
+        await _context.SaveChangesAsync();
+        _navigation.NavigateTo("Course");
+    }
+    }

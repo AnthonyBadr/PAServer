@@ -377,6 +377,28 @@ namespace PADatabase.Migrations
                     b.ToTable("Location");
                 });
 
+            modelBuilder.Entity("PADatabase.Models.PackageCodeList", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Pckg_Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("Price")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PackageCodeLists");
+                });
+
             modelBuilder.Entity("PADatabase.Models.PaymentUser", b =>
                 {
                     b.Property<Guid>("Id")
@@ -419,43 +441,24 @@ namespace PADatabase.Migrations
                     b.ToTable("PdfFiles");
                 });
 
-            modelBuilder.Entity("PADatabase.Models.SessionModel.PackageCodeList", b =>
+            modelBuilder.Entity("PADatabase.Models.Session", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Pckg_Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<double>("Price")
-                        .HasColumnType("float");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("PackageCodeLists");
-                });
-
-            modelBuilder.Entity("PADatabase.Models.SessionModel.Session", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
 
                     b.Property<string>("Location")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<double>("Nbhours")
-                        .HasColumnType("float");
+                    b.Property<Guid>("PackageCodeListId")
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Property<double>("PackageCodeListId")
-                        .HasColumnType("float");
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("description")
                         .IsRequired()
@@ -463,7 +466,33 @@ namespace PADatabase.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("PackageCodeListId");
+
+                    b.HasIndex("UserId");
+
                     b.ToTable("Sessions");
+                });
+
+            modelBuilder.Entity("PADatabase.Models.SessionStudent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SessionId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("SessionStudents");
                 });
 
             modelBuilder.Entity("PADatabase.Models.Transaction", b =>
@@ -515,14 +544,17 @@ namespace PADatabase.Migrations
 
             modelBuilder.Entity("PADatabase.Models.UserPersonalDetails", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<DateOnly>("DateOfBirth")
                         .HasColumnType("date");
 
                     b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Gender")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -534,12 +566,7 @@ namespace PADatabase.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
+                    b.HasKey("UserId");
 
                     b.ToTable("UserPersonalDetails");
                 });
@@ -656,6 +683,44 @@ namespace PADatabase.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("PADatabase.Models.Session", b =>
+                {
+                    b.HasOne("PADatabase.Models.PackageCodeList", "PackageCodeList")
+                        .WithMany()
+                        .HasForeignKey("PackageCodeListId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PADatabase.Models.UserPersonalDetails", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PackageCodeList");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("PADatabase.Models.SessionStudent", b =>
+                {
+                    b.HasOne("PADatabase.Models.Session", "Session")
+                        .WithMany("SessionStudents")
+                        .HasForeignKey("SessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PADatabase.Models.UserPersonalDetails", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Session");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("PADatabase.Models.Transaction", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
@@ -687,10 +752,17 @@ namespace PADatabase.Migrations
             modelBuilder.Entity("PADatabase.Models.UserPersonalDetails", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
+                        .WithOne()
+                        .HasForeignKey("PADatabase.Models.UserPersonalDetails", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("PADatabase.Models.Session", b =>
+                {
+                    b.Navigation("SessionStudents");
                 });
 #pragma warning restore 612, 618
         }

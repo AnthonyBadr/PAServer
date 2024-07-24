@@ -2,7 +2,9 @@
 
 @inject NavigationManager _navigation
 @inject ApplicationDbContext _context
-
+@using Microsoft.AspNetCore.Identity
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using System.Security.Claims
 <h1 class="mt-4 mb-4">Create New Course</h1>
 
 <h4>UserPersonalDetails</h4>
@@ -47,6 +49,17 @@
 
 @code {
     private UserPersonalDetails UserPersonalDetails = new UserPersonalDetails();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        string authid = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        UserPersonalDetails.UserId = authid;
+        int x = 5;
+
+    }
 
     private async Task CreateUserPersonalDetails()
     {

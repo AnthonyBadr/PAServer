@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using PAPublic;
 using PAPublic.Components;
 using ServerApp2.Areas.Identity;
+using Syncfusion.Blazor;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +20,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-
+builder.Services.AddSyncfusionBlazor();
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 {

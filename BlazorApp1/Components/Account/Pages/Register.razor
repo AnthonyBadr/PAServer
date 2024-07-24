@@ -77,11 +77,17 @@
         await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
         var emailStore = GetEmailStore();
         await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
+        user.PhoneNumber = Input.PhoneNumber; // Assign Input.PhoneNumber from the form
+
+        // Log the phone number to the console
+        Console.WriteLine($"Phone Number: {user.PhoneNumber}");
+
         var result = await UserManager.CreateAsync(user, Input.Password);
 
         if (!result.Succeeded)
         {
             identityErrors = result.Errors;
+            Logger.LogError($"Failed to create user: {string.Join(", ", result.Errors.Select(error => error.Description))}");
             return;
         }
 

@@ -1,0 +1,62 @@
+﻿@page "/PackageCodeList"
+<h3>PackageCodeListView</h3>
+@using PADatabase.Models
+@inject NavigationManager _navigation
+@inject ApplicationDbContext _context
+<h1 class="mt-4 mb-4">Courses</h1>
+
+@if (PackageCodeList != null && PackageCodeList.Any())
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered shadow-sm">
+            <thead class="table-light">
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Fee</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in PackageCodeList)
+                {
+                    <tr>
+                        <td>@item.Pckg_Name</td>
+                        <td>@item.Description</td>
+                        <td>@item.Price</td>
+                        <td>@item.percentLES</td>
+                        <td>@item.percentBTAC</td>
+                        <td>
+                            <a href="/PackageCodeList/Edit/@item.Id" class="btn btn-primary btn-sm me-2">Edit</a>
+                            <button @onclick="() => Delete(item.Id)" class="btn btn-primary btn-sm me-2">Delete</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="alert alert-warning">No courses found.</div>
+}
+
+@code {
+    private IList<PackageCodeList> PackageCodeList = new List<PackageCodeList>();
+
+    protected override void OnInitialized()
+    {
+        PackageCodeList = _context.PackageCodeLists.ToList();
+    }
+
+    private void Delete(Guid id)
+    {
+        var packageToDelete = _context.PackageCodeLists.FirstOrDefault(p => p.Id == id);
+        if (packageToDelete != null)
+        {
+            _context.PackageCodeLists.Remove(packageToDelete);
+            _context.SaveChanges();
+            PackageCodeList = _context.PackageCodeLists.ToList();
+        }
+    }
+}

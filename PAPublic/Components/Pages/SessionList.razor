@@ -1,0 +1,246 @@
+﻿@page "/Session"
+<h3>Sessions</h3>
+@using System.Security.Claims
+@using PADatabase.Models
+@using Microsoft.AspNetCore.Identity
+@inject NavigationManager _navigation
+@inject ApplicationDbContext _context
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject RoleManager<IdentityRole> _roleManager
+@inject UserManager<IdentityUser> UserManager
+
+<label for="packageCodeListId" class="form-label">Package Code</label>
+
+<label for="userFilter" class="form-label">Filter by User</label>
+<select id="userFilter" class="form-select" @onchange="OnUserSelected">
+    <option value="7c6cb4c5-28b9-48c9-a2b3-e7fba3b4a954">---------</option>
+    @foreach (var user in userDetails)
+    {
+        <option value="@user.UserId">@user.FirstName</option>
+    }
+</select>
+
+<label for="packageFilter" class="form-label">Filter by Package</label>
+<select id="packageFilter" class="form-select" @onchange="OnTutorSelected">
+    <option value="7c6cb4c5-28b9-48c9-a2b3-e7fba3b4a954">---------</option>
+    @foreach (var pl in PackageCodeList)
+    {
+        <option value="@pl.Id">@pl.Pckg_Name</option>
+    }
+</select>
+
+@if (PagedSessionStudent != null && PagedSessionStudent.Any())
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered shadow-sm">
+            <thead class="table-light">
+                <tr>
+                    <th>Teacher</th>
+                    <th>Location</th>
+                    <th>Price</th>
+                    <th>Package</th>
+                    <th>Student</th>
+                    <th>Date of Session</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Time Difference</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in PagedSessionStudent)
+                {
+                    <tr>
+                        <td>@item.Session.User.FirstName</td>
+                        <td>@item.Session.Location</td>
+                        <td>
+                            @(
+                                item.Session.PackageCodeList.Price *
+                                (1 - (item.Session.PackageCodeList.percentLES + item.Session.PackageCodeList.percentBTAC))
+                                )
+                        </td>
+                        <td>@item.Session.PackageCodeList.Description</td>
+                        <td>@(item.User?.FirstName ?? "No User")</td>
+                        <td>@item.Session.DateofLesson</td>
+                        <td>@item.Session.StartTime</td>
+                        <td>@item.Session.EndTime</td>
+                        <td>
+                            @{
+                                var startTime = new DateTime(item.Session.DateofLesson.Year, item.Session.DateofLesson.Month, item.Session.DateofLesson.Day, item.Session.StartTime.Hour, item.Session.StartTime.Minute, 0);
+                                var endTime = new DateTime(item.Session.DateofLesson.Year, item.Session.DateofLesson.Month, item.Session.DateofLesson.Day, item.Session.EndTime.Hour, item.Session.EndTime.Minute, 0);
+                                var duration = endTime - startTime;
+                                var totalHours = duration.TotalHours;
+                            }
+                            @totalHours.ToString("0.##") hours
+                        </td>
+                        <td>
+             @*                <button @onclick="() => DeleteSession(item.SessionId)">Delete</button> *@
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div>
+        <button @onclick="PreviousPage" disabled="@(!HasPreviousPage)">Previous</button>
+        <span>Page @currentPage of @totalPages</span>
+        <button @onclick="NextPage" disabled="@(!HasNextPage)">Next</button>
+    </div>
+}
+else
+{
+    <div class="alert alert-warning">No sessions found.</div>
+}
+
+@code {
+    private IList<Session> Sessions = new List<Session>();
+    private IList<SessionStudent> SessionStudent = new List<SessionStudent>();
+    private IList<SessionStudent> PagedSessionStudent = new List<SessionStudent>();
+    private IList<PackageCodeList> PackageCodeList = new List<PackageCodeList>();
+    private Guid PackageCodeListId { get; set; }
+    private Guid? SelectedUserId { get; set; }
+    List<Guid> sessionIds = new List<Guid>();
+    List<UserPersonalDetails> UserPersonalDetails = new List<UserPersonalDetails>();
+    List<UserPersonalDetails> userDetails = new List<UserPersonalDetails>();
+    List<UserPersonalDetails> userDetailstutor = new List<UserPersonalDetails>();
+
+    private int currentPage = 1;
+    private int totalPages = 1;
+    private int pageSize = 5;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var studentRole = await _roleManager.Roles.SingleOrDefaultAsync(r => r.Name == "Student");
+        var studentIds = (await UserManager.GetUsersInRoleAsync(studentRole.Name)).Select(u => u.Id).ToList();
+        userDetails = await _context.UserPersonalDetails
+            .Where(upd => studentIds.Contains(upd.UserId))
+            .ToListAsync();
+
+        var tutorRole = await _roleManager.Roles.SingleOrDefaultAsync(r => r.Name == "Teacher");
+        var tutorIds = (await UserManager.GetUsersInRoleAsync(tutorRole.Name)).Select(u => u.Id).ToList();
+        userDetailstutor = await _context.UserPersonalDetails
+            .Where(upd => tutorIds.Contains(upd.UserId))
+            .ToListAsync();
+
+        // Load initial data
+        PackageCodeList = await _context.PackageCodeLists.ToListAsync();
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        string authid = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        Sessions = _context.Sessions.Where(c => c.UserId == authid).ToList();
+        sessionIds = Sessions.Select(s => s.Id).ToList();
+        callallSession();
+
+        UserPersonalDetails = _context.UserPersonalDetails.ToList();
+    }
+
+    private void callallSession()
+    {
+        SessionStudent = _context.SessionStudents
+            .Where(p => sessionIds.Contains(p.SessionId))
+            .Include(p => p.User)
+            .Include(p => p.Session)
+                .ThenInclude(s => s.PackageCodeList)
+            .ToList();
+
+        UpdatePagination();
+    }
+
+    private void OnUserSelected(ChangeEventArgs args)
+    {
+        if (Guid.TryParse(args.Value.ToString(), out Guid selectedUserId))
+        {
+            SelectedUserId = selectedUserId;
+            if (SelectedUserId == Guid.Parse("7c6cb4c5-28b9-48c9-a2b3-e7fba3b4a954"))
+            {
+                callallSession();
+            }
+            else
+            {
+                callallSession();
+                SessionStudent = SessionStudent.Where(x => x.UserId == SelectedUserId.ToString()).ToList();
+            }
+        }
+        else
+        {
+            SelectedUserId = null;
+        }
+
+        UpdatePagination();
+    }
+
+    private void OnTutorSelected(ChangeEventArgs args)
+    {
+        if (Guid.TryParse(args.Value.ToString(), out Guid selectedUserId))
+        {
+            SelectedUserId = selectedUserId;
+            if (SelectedUserId == Guid.Parse("7c6cb4c5-28b9-48c9-a2b3-e7fba3b4a954"))
+            {
+                callallSession();
+            }
+            else
+            {
+                callallSession();
+                SessionStudent = SessionStudent.Where(x => x.Session.PackageCodeListId == SelectedUserId).ToList();
+            }
+        }
+        else
+        {
+            SelectedUserId = null;
+        }
+
+        UpdatePagination();
+    }
+
+    private void UpdatePagination()
+    {
+        totalPages = (int)Math.Ceiling(SessionStudent.Count / (double)pageSize);
+        PagedSessionStudent = SessionStudent.Skip((currentPage - 1) * pageSize).Take(pageSize).ToList();
+    }
+
+    private void NextPage()
+    {
+        if (HasNextPage)
+        {
+            currentPage++;
+            UpdatePagination();
+        }
+    }
+
+    private void PreviousPage()
+    {
+        if (HasPreviousPage)
+        {
+            currentPage--;
+            UpdatePagination();
+        }
+    }
+
+    private bool HasNextPage => currentPage < totalPages;
+    private bool HasPreviousPage => currentPage > 1;
+}
+
+<style>
+    .table-responsive {
+        overflow-x: auto; /* Allow horizontal scrolling on small screens */
+    }
+
+    table {
+        width: 100%; /* Ensure table uses full width of container */
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 8px;
+        text-align: left;
+        border: 1px solid #ddd;
+    }
+
+    th {
+        background-color: #f4f4f4;
+    }
+
+    .form-select {
+        margin-bottom: 15px;
+    }
+</style>

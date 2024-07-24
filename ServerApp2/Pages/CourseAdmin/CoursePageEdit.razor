@@ -1,10 +1,13 @@
 ﻿@page "/Course/Edit/{ID:guid}"
 @using Microsoft.AspNetCore.Identity
-@inject ApplicationDbContext _context
+@using PADatabase.Models
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager _navigation
+@inject ApplicationDbContext _context
+@using System.Security.Claims
 @inject RoleManager<IdentityRole> _roleManager
 @inject UserManager<IdentityUser> UserManager
-
+@using PADatabase.Models
 <h1 class="mt-4 mb-4">Edit Course</h1>
 
 <h4>Course Information</h4>
@@ -56,7 +59,7 @@ else
     </div>
 }
     @code {
-        private Course? course;
+        private Course course;
 
         [Parameter]
         public Guid ID { get; set; }

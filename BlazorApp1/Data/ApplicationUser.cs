@@ -5,6 +5,6 @@ namespace BlazorApp1.Data
     // Add profile data for application users by adding properties to the ApplicationUser class
     public class ApplicationUser : IdentityUser
     {
-        public string PhoneNumber { get; set; } // Specify the data type (string) for the PhoneNumber property
+        public string PhoneNumber { get; set; }
     }
 }

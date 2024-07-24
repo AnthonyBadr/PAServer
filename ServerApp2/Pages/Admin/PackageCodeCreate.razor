@@ -1,0 +1,67 @@
+﻿@page "/PackageCodeList/Create"
+<h3>AddPakagecodeList</h3>
+@using PADatabase.Models
+
+@inject NavigationManager _navigation
+@inject ApplicationDbContext _context
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <EditForm Model="@pkid" OnValidSubmit="CreatePackagePrice">
+            <DataAnnotationsValidator />
+            <div class="form-group mb-3">
+                <label for="Name" class="form-label">Name</label>
+                <InputText id="Pckg_Name" @bind-Value="pkid.Pckg_Name" class="form-control" />
+                <ValidationMessage For="@(() => pkid.Pckg_Name)" class="text-danger" />
+            </div>
+
+
+            <div class="form-group mb-3">
+                <label for="Description" class="form-label">Description</label>
+                <InputText id="Description" @bind-Value="pkid.Description" class="form-control" />
+                <ValidationMessage For="@(() => pkid.Description)" class="text-danger" />
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="Description" class="form-label">Price</label>
+                <InputNumber id="Price" @bind-Value="pkid.Price" class="form-control" />
+                <ValidationMessage For="@(() => pkid.Price)" class="text-danger" />
+            </div>
+            
+
+         
+            <div class="form-group mb-3">
+                <label for="Description" class="form-label">percentLES</label>
+                <InputNumber id="Price" @bind-Value="pkid.percentLES" class="form-control" />
+                <ValidationMessage For="@(() => pkid.percentLES)" class="text-danger" />
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="Description" class="form-label">percentBTAC</label>
+                <InputNumber id="Price" @bind-Value="pkid.percentBTAC" class="form-control" />
+                <ValidationMessage For="@(() => pkid.percentBTAC)" class="text-danger" />
+            </div>
+    
+
+
+            <button type="submit" class="btn btn-primary">Create</button>
+            <a href="Index" class="btn btn-secondary ms-2">Back to Courses</a>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+
+
+
+    private PackageCodeList pkid = new PackageCodeList();
+
+
+    private async Task CreatePackagePrice()
+    {
+        _context.PackageCodeLists.Add(pkid);
+        await _context.SaveChangesAsync();
+        _navigation.NavigateTo("PackageCodeList");
+    }
+
+}
+    

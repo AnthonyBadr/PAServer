@@ -18,7 +18,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.WebUtilities;
-using PADatabase.Migrations;
+
 
 namespace ServerApp2.Areas.Identity.Pages.Account
 {
@@ -81,7 +81,7 @@ namespace ServerApp2.Areas.Identity.Pages.Account
                     var roleResult = await _userManager.AddToRoleAsync(user, Input.Role);
 
                     if (!roleResult.Succeeded)
-                    {
+                    {   
                         // Log an error message or handle errors
                         _logger.LogError("Error adding role: {Role}", Input.Role);
                         foreach (var error in roleResult.Errors)
