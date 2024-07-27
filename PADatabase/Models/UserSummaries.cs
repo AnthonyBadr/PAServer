@@ -21,11 +21,13 @@ namespace PADatabase.Models
         [Required]
         public double NbHours { get; set; }
 
-       
-      
+
+        public double  AmountPaid {get; set;}
         public string Status { get; set; }
 
         // Navigation property
+
+        public virtual ICollection<Session> Sessions { get; set; }
         public virtual UserPersonalDetails UserPersonalDetail { get; set; }
 
         // Default constructor
@@ -35,7 +37,7 @@ namespace PADatabase.Models
         }
 
         // Parameterized constructor
-        public UserSummaries(Guid id, string userId, double money, int paymentNumber, double nbHours, string status)
+        public UserSummaries(Guid id, string userId, double money, int paymentNumber, double nbHours, string status, double amountPaid)
         {
             Id = id;
             UserId = userId;
@@ -43,6 +45,7 @@ namespace PADatabase.Models
             PaymentNumber = paymentNumber;
             NbHours = nbHours;
             Status = status; // Remains as string
+            AmountPaid = amountPaid;
         }
     }
 }

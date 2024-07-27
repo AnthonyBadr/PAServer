@@ -1,0 +1,132 @@
+﻿@page "/Transaction/Create"
+<h3>Transaction</h3>
+@using System.Security.Claims
+@using PADatabase.Models
+@using Microsoft.AspNetCore.Identity
+@inject NavigationManager _navigation
+@inject ApplicationDbContext _context
+@inject IJSRuntime JSRuntime
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject RoleManager<IdentityRole> _roleManager
+@inject UserManager<IdentityUser> UserManager
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <EditForm Model="@Transaction" OnValidSubmit="CreateTransaction">
+            <DataAnnotationsValidator />
+
+
+       
+
+            <select id="userFilter" class="form-select" @onchange="OnTypeSelected">
+                @foreach (var type in type)
+                {
+                    <option value="@type">@type</option>
+                }
+            </select>
+
+
+            <div class="form-group mb-3">
+                <label for="Description" class="form-label">Description</label>
+                <InputNumber id="amount" @bind-Value="amount" class="form-control" />
+                <ValidationMessage For="@(() => amount)" class="text-danger" />
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="Comment" class="form-label">Comment</label>
+                <InputText id="comment" @bind-Value="comment" class="form-control" />
+                <ValidationMessage For="@(() => comment)" class="text-danger" />
+            </div>
+
+
+            <select id="userFilter" class="form-select" @bind="userID">
+                @foreach (var user in userDetails)
+                {
+                    <option value="@user.UserId">@user.FirstName @user.LastName</option>
+                }
+            </select>
+
+            <div class="form-group mb-3">
+                <label for="dateofPayment" class="form-label">Date of Payment</label>
+                <InputDate id="dateofPayment" @bind-Value="dateofPayment" class="form-control" />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Create</button>
+            <a href="Index" class="btn btn-secondary ms-2">Back to Courses</a>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private Transaction Transaction = new Transaction();
+    private List<string> type = new List<string>();
+    private string selectedType { get; set; }
+    private List<UserPersonalDetails> userDetails = new List<UserPersonalDetails>();
+    private string userID { get; set; }
+    private DateOnly dateofPayment { get; set; }// Initialize with today's date
+    private double amount { get; set; }
+    private string comment { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        type.Add("Parent");
+        type.Add("Teacher");
+        type.Add("LES");
+    }
+
+    private async Task CreateTransaction()
+    {
+
+        Transaction.amount = amount;
+        Transaction.date_T = dateofPayment;
+        Transaction.UserId = userID;
+        Transaction.comment = comment;
+
+      
+
+        var US = _context.UserSummaries.Where(x => x.UserId == userID && x.Status == "Pending").FirstOrDefault();
+       
+        US.Status = "Paid";
+
+        _context.Transactions.Add(Transaction);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task OnTypeSelected(ChangeEventArgs e)
+    {
+        selectedType = e.Value.ToString();
+
+        if (selectedType == "LES")
+        {
+            userDetails.Clear();
+        }
+        else if (selectedType == "Parent")
+        {
+            var studentRole = await _roleManager.Roles.SingleOrDefaultAsync(r => r.Name == "Student");
+            if (studentRole != null)
+            {
+                var studentIds = (await UserManager.GetUsersInRoleAsync(studentRole.Name)).Select(u => u.Id).ToList();
+                userDetails = await _context.UserPersonalDetails
+                    .Where(upd => studentIds.Contains(upd.UserId))
+                    .ToListAsync();
+            }
+        }
+        else if (selectedType == "Teacher")
+        {
+            var tutorRole = await _roleManager.Roles.SingleOrDefaultAsync(r => r.Name == "Teacher");
+            if (tutorRole != null)
+            {
+                var tutorIds = (await UserManager.GetUsersInRoleAsync(tutorRole.Name)).Select(u => u.Id).ToList();
+                userDetails = await _context.UserPersonalDetails
+                    .Where(upd => tutorIds.Contains(upd.UserId))
+                    .ToListAsync();
+            }
+        }
+        else
+        {
+            userDetails.Clear();
+        }
+
+        StateHasChanged(); 
+    }
+}

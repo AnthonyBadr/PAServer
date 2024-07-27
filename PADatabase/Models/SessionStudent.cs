@@ -21,7 +21,13 @@ namespace PADatabase.Models
         [ForeignKey("UserId")]
         public virtual UserPersonalDetails User { get; set; }
 
+     
 
+
+        public String DeleteButton {  get; set; }
+
+
+        
 
     }
 }

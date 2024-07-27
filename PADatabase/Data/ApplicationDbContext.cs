@@ -66,12 +66,16 @@ public class ApplicationDbContext : IdentityDbContext
              .HasForeignKey(us => us.UserId)
              .HasPrincipalKey(ud => ud.UserId);
 
-        modelBuilder.Entity<Infromation>()
-            .HasOne(us => us.UserPersonalDetail)
-            .WithMany(ud => ud.Infromation)
-            .HasForeignKey(us => us.UserId)
-            .HasPrincipalKey(ud => ud.UserId);
+        modelBuilder.Entity<UserSummaries>()
+     .HasOne(us => us.UserPersonalDetail)
+     .WithMany(ud => ud.UserSummaries)
+     .HasForeignKey(us => us.UserId)
+     .HasPrincipalKey(ud => ud.UserId);
 
+        modelBuilder.Entity<Session>()
+                .HasOne(s => s.UserSummaries)
+                .WithMany(us => us.Sessions)
+                .HasForeignKey(s => s.UserSummariesId);
 
         base.OnModelCreating(modelBuilder);
     }

@@ -23,5 +23,7 @@ namespace PADatabase.Models
         public double? amount { get; set; } 
 
         public string? comment { get; set; } 
+
+   
     }
 }

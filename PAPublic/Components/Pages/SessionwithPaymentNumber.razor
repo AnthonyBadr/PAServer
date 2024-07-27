@@ -1,0 +1,81 @@
+﻿@page "/Session/SessionwithPaymentNumber/{ID:guid}"
+@using System.Security.Claims
+@using PADatabase.Models
+@using Microsoft.AspNetCore.Identity
+@inject NavigationManager _navigation
+@inject ApplicationDbContext _context
+@inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject RoleManager<IdentityRole> _roleManager
+@inject UserManager<IdentityUser> UserManager
+
+<div class="table-responsive">
+    <table class="table table-striped table-bordered shadow-sm">
+        <thead class="table-light">
+            <tr>
+                <th>Session#</th>
+                <th>Teacher</th>
+                <th>Location</th>
+                <th>Price</th>
+                <th>Package</th>
+                <th>Student</th>
+                <th>Date of Session</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Time Difference</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in SessionStudent)
+            {
+                <tr>
+                    <td>@item.Session.SNumber</td>
+                    <td>@item.Session.User.FirstName</td>
+                    <td>@item.Session.Location</td>
+                    <td>
+                        @(
+                            item.Session.PackageCodeList.Price *
+                            (1 - (item.Session.PackageCodeList.percentLES + item.Session.PackageCodeList.percentBTAC))
+                            )
+                    </td>
+                    <td>@item.Session.PackageCodeList.Description</td>
+                    <td>@(item.User?.FirstName ?? "No User")</td>
+                    <td>@item.Session.DateofLesson.ToString("d")</td>
+                    <td>@item.Session.StartTime.ToString("t")</td>
+                    <td>@item.Session.EndTime.ToString("t")</td>
+                    <td>
+                        @{
+                            var startTime = new DateTime(item.Session.DateofLesson.Year, item.Session.DateofLesson.Month, item.Session.DateofLesson.Day, item.Session.StartTime.Hour, item.Session.StartTime.Minute, 0);
+                            var endTime = new DateTime(item.Session.DateofLesson.Year, item.Session.DateofLesson.Month, item.Session.DateofLesson.Day, item.Session.EndTime.Hour, item.Session.EndTime.Minute, 0);
+                            var duration = endTime - startTime;
+                            var totalHours = duration.TotalHours;
+                        }
+                        @totalHours.ToString("0.##") hours
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    [Parameter]
+    public Guid ID { get; set; }
+
+    private IList<SessionStudent> SessionStudent = new List<SessionStudent>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Retrieve the list of Session IDs
+        var sessionsId = await _context.Sessions
+            .Where(x => x.UserSummariesId == ID)
+            .Select(x => x.Id)
+            .ToListAsync();
+
+        // Filter SessionStudent entities based on the list of Session IDs
+        SessionStudent = await _context.SessionStudents
+            .Where(x => sessionsId.Contains(x.SessionId))
+            .ToListAsync();
+    }
+}

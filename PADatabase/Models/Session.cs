@@ -11,7 +11,7 @@ namespace PADatabase.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public Guid Id { get; set; }
 
-        public string UserId {get; set; }
+        public string UserId { get; set; }
 
 
 
@@ -32,9 +32,18 @@ namespace PADatabase.Models
         public TimeOnly EndTime { get; set; }
         public DateOnly DateofLesson { get; set; } // Date variable
 
-      
-        public virtual ICollection<SessionStudent> SessionStudents { get; set; }
 
+        public virtual ICollection<SessionStudent> SessionStudents { get; set; }
+        public virtual UserSummaries UserSummaries { get; set; }
+
+        public Guid? UserSummariesId { get; set; }
+
+
+
+        public int SNumber { get; set; }
+
+    }       
 
     }
-}
+
+    

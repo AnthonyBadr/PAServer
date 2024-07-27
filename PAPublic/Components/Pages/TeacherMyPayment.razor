@@ -20,6 +20,7 @@
                     <th>Paymemt</th>
                     <th>Number of Hours</th>
                     <th>Status</th>
+                    <th>View Sessions</th>
                  
                 </tr>
             </thead>
@@ -32,6 +33,7 @@
                         <td>@item.Money</td>
                         <td>@item.NbHours</td>
                         <td>@item.Status</td>
+                        <td> <a href="/Session/SessionwithPaymentNumber/@item.Id" class="btn btn-primary btn-sm me-2">Sessions</a></td>
                        
                     </tr>
                 }

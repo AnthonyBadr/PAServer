@@ -18,7 +18,7 @@
             @foreach (var selectedItem in GetSelectedItems())
             {
                 <p style="margin-right: 10px;">@selectedItem.StudentDetails.FirstName</p>
-            }
+            } 
         </div>
 
         @if (IsDropdownOpen)
@@ -249,6 +249,7 @@
         try
         {
             Session.UserId = authid;
+
             _context.Sessions.Add(Session);
             await _context.SaveChangesAsync();
 
@@ -257,60 +258,74 @@
             // Assuming `upd` is an instance of UserPersonalDetails
             upd.numberOfHours = TimeDifferenceInHours;
 
+            int index = 0;
+
             foreach (var studentId in selectedUserDetails)
             {
+
+
                 sessionUser = new SessionStudent
                 {
                     UserId = studentId.StudentDetails.UserId,
                     SessionId = Session.Id,
                      Session = Session
                 };
+                if (index == 0)
+                {
+                    sessionUser.DeleteButton = "true";
+                }
+                else
+                {
+                    sessionUser.DeleteButton = "false";
+                }
 
+                index++;
                 _context.SessionStudents.Add(sessionUser);
+
+          
+
 
             }
             Sum = 0;
             for (int i = 0; i < selectedUserDetails.Count(); i++)
             {
-                 
+
                 Sum = Sum+ sessionUser.Session.PackageCodeList.Price * (1 - (sessionUser.Session.PackageCodeList.percentBTAC + sessionUser.Session.PackageCodeList.percentLES));
             }
 
-
-
-         
-
-                if (_context.UserSummaries.Where(x => x.UserId == authid && x.Status == "Pending").Count()==0)
+            var sess = _context.Sessions.Where(x => x.Id == Session.Id).FirstOrDefault();
+            if (_context.UserSummaries.Where(x => x.UserId == authid && x.Status == "Pending").Count()==0)
+            {
+                var payedNumber = _context.UserSummaries
+                    .Where(x => x.Status == "Paid")  // Add the status value or variable
+                    .Select(x => x.PaymentNumber).FirstOrDefault();
+                if (payedNumber == null)
                 {
-                    var userSummary = new UserSummaries(
-                         id: Guid.NewGuid(),                
-                         userId: authid,
-                     money: Sum,
-                         paymentNumber: 1,                
-                         nbHours:TimeDifferenceInHours,                    
-                         status: "Pending"
-                    );
-                    _context.UserSummaries.Add(userSummary);
-
+                    payedNumber = 1;
                 }
-                else
-                {
-                    var us = _context.UserSummaries.Where(x => x.UserId == authid && x.Status=="Pending").FirstOrDefault();
+
+                var userSummary = new UserSummaries(
+                     id: Guid.NewGuid(),                
+                     userId: authid,
+                 money: Sum,
+                     paymentNumber: payedNumber+1,
+                     nbHours:TimeDifferenceInHours,                    
+                     status: "Pending",
+                     amountPaid: 0
+                );
+
+
+                _context.UserSummaries.Add(userSummary);
+
+                sess.UserSummariesId = userSummary.Id;
+
+            }
+            else
+            {
+                var us = _context.UserSummaries.Where(x => x.UserId == authid && x.Status=="Pending").FirstOrDefault();
                 us.Money = us.Money + Sum;
-
-                }
-
-
-
-
-
-          
-
-
-          
-         
-
-
+                sess.UserSummariesId = us.Id;
+            }
 
             await _context.SaveChangesAsync();
             _navigation.NavigateTo("Index");
