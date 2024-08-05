@@ -1,6 +1,6 @@
 ﻿<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">PAPublic</a>
+        <a class="navbar-brand" href="">BTAC PORTAL</a>
     </div>
 </div>
 
@@ -18,24 +18,16 @@
 
         <AuthorizeView Roles="Teacher">
             <Authorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Teacher/Mycourses">
-                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> My Courses
-                    </NavLink>
-                </div>
+         
 
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="whiteboard">
-                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> WhiteBoard
-                    </NavLink>
-                </div>
+             
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="Session/Create">
                         <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Submit Session
                     </NavLink>
                 </div>
                 <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Session">
+                    <NavLink class="nav-link" href="Sessions">
                         <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> My Sessions
                     </NavLink>
                 </div>
@@ -44,36 +36,60 @@
                         <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> My Payments
                     </NavLink>
                 </div>
-            </Authorized>
-        </AuthorizeView>
 
-        <AuthorizeView Roles="Student">
-            <Authorized>
                 <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Student/Mycourses">
-                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> My Courses
+                    <NavLink class="nav-link" href="UserPersonalDetails/Create">
+                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Personal Details
                     </NavLink>
                 </div>
-            </Authorized>
-        </AuthorizeView>
-       <AuthorizeView Roles="Student">
-            <Authorized>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="AllCourse">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Enroll Course
-            </NavLink>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="TransactionsUser">
+                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> My Transactions
+                    </NavLink>
                 </div>
+                
+                
+
             </Authorized>
         </AuthorizeView>
 
-        <AuthorizeView Roles="Student">
+   
+       <AuthorizeView Roles="Student">
             <Authorized>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="Student/Payment">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Payment
-            </NavLink>
-        </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="TransactionsUser">
+                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> My Transactions
+                    </NavLink>
+                </div>
+
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="Sessions">
+                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> My Sessions
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="Teacher/MyPayment">
+                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> My Payments
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="UserPersonalDetails/Create">
+                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Personal Details
+                    </NavLink>
+                </div>
+
             </Authorized>
         </AuthorizeView>
+
+       
+
+     
+
+  
+
     </nav>
 </div>

@@ -17,6 +17,9 @@ namespace PADatabase.Models
 
         public string UserId { get; set; }
 
+        public virtual UserSummaries UserSummaries { get; set; }
+
+        public Guid? UserSummariesId { get; set; }
 
         [ForeignKey("UserId")]
         public virtual UserPersonalDetails User { get; set; }

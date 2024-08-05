@@ -2,6 +2,10 @@
 <h3>Transaction</h3>
 @using System.Security.Claims
 @using PADatabase.Models
+@using System.Net;
+@using System.Net.Mail;
+@using Microsoft.AspNetCore.Identity;
+@using MailKit.Net.Smtp;
 @using Microsoft.AspNetCore.Identity
 @inject NavigationManager _navigation
 @inject ApplicationDbContext _context
@@ -18,21 +22,44 @@
 
 
        
-
+            <label>Select Type of payment</label>
             <select id="userFilter" class="form-select" @onchange="OnTypeSelected">
+                <option value="">--------------------</option>
                 @foreach (var type in type)
                 {
                     <option value="@type">@type</option>
                 }
             </select>
 
+            <br/>
 
+            <label>Select Person to Pay to receive from</label>
+            <select id="userFilter" class="form-select" @onchange="OnUserSelected">
+                <option value="">--------------------</option>
+                @foreach (var user in userDetails)
+                {
+                    <option value="@user.UserId">@user.FirstName @user.LastName</option>
+                }
+                </select>
+
+            <br />
+
+            <label>Select Person to Pay to receive from</label>
+            <select id="userFilter" class="form-select" @bind="UsId">
+                <option value="">--------------------</option>
+                @foreach (var user in userPayments)
+                {
+                    <option value="@user.Id">@user.Status @user.Money</option>
+                }
+            </select>
+
+            <br />
             <div class="form-group mb-3">
-                <label for="Description" class="form-label">Description</label>
+                <label for="Amount" class="form-label">Amount</label>
                 <InputNumber id="amount" @bind-Value="amount" class="form-control" />
                 <ValidationMessage For="@(() => amount)" class="text-danger" />
             </div>
-
+            <br />
             <div class="form-group mb-3">
                 <label for="Comment" class="form-label">Comment</label>
                 <InputText id="comment" @bind-Value="comment" class="form-control" />
@@ -40,12 +67,7 @@
             </div>
 
 
-            <select id="userFilter" class="form-select" @bind="userID">
-                @foreach (var user in userDetails)
-                {
-                    <option value="@user.UserId">@user.FirstName @user.LastName</option>
-                }
-            </select>
+            <br />
 
             <div class="form-group mb-3">
                 <label for="dateofPayment" class="form-label">Date of Payment</label>
@@ -59,19 +81,26 @@
 </div>
 
 @code {
+
     private Transaction Transaction = new Transaction();
     private List<string> type = new List<string>();
+    List<UserSummaries> userPayments = new List<UserSummaries>();
     private string selectedType { get; set; }
     private List<UserPersonalDetails> userDetails = new List<UserPersonalDetails>();
     private string userID { get; set; }
-    private DateOnly dateofPayment { get; set; }// Initialize with today's date
+    private DateOnly dateofPayment = DateOnly.FromDateTime(DateTime.Now);
     private double amount { get; set; }
     private string comment { get; set; }
+    private Guid UsId { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         type.Add("Parent");
         type.Add("Teacher");
         type.Add("LES");
+
+
+
     }
 
     private async Task CreateTransaction()
@@ -82,19 +111,66 @@
         Transaction.UserId = userID;
         Transaction.comment = comment;
 
-      
+        var Toemail = _context.Users.Where(x => x.Id == userID).Select(x => x.UserName).FirstOrDefault();
 
-        var US = _context.UserSummaries.Where(x => x.UserId == userID && x.Status == "Pending").FirstOrDefault();
-       
+        string fromMail = "anthonybadr40@gmail.com";
+        string fromPassword = "fqsunsbeykwyoojg";
+
+        MailMessage message = new MailMessage();
+        message.From = new MailAddress(fromMail);
+        message.Subject = "Your Payment";
+        message.To.Add(new MailAddress(Toemail));
+        message.Body = $"This email is to inform  you that a transaction of {amount} $ has been made on {dateofPayment} Thank you  "; 
+        message.IsBodyHtml = false; // Set to false for plain text
+
+        try
+        {
+            var smtpClient = new System.Net.Mail.SmtpClient("smtp.gmail.com")
+                {
+                    Port = 587,
+                    Credentials = new NetworkCredential(fromMail, fromPassword),
+                    EnableSsl = true,
+                };
+
+            smtpClient.Send(message);
+
+            // If email sent successfully, show success message
+            await JSRuntime.InvokeVoidAsync("alert", "Email sent successfully!");
+        }
+        catch (Exception ex)
+        {
+            // If there is an error, show failure message
+            await JSRuntime.InvokeVoidAsync("alert", "Failed to send email. Error: " + ex.Message);
+        }
+
+
+
+
+
+        var US = _context.UserSummaries.Where(x => x.Id == UsId).FirstOrDefault();
+
         US.Status = "Paid";
 
         _context.Transactions.Add(Transaction);
         await _context.SaveChangesAsync();
     }
 
+
+    public async Task OnUserSelected(ChangeEventArgs e)
+    {
+        userID = e.Value.ToString();
+        userPayments = _context.UserSummaries
+     .Where(x => x.UserId == userID && (x.Status == "Waiting" || x.Status == "Pending"))
+     .ToList();
+    }
+
     public async Task OnTypeSelected(ChangeEventArgs e)
     {
         selectedType = e.Value.ToString();
+
+      
+
+
 
         if (selectedType == "LES")
         {

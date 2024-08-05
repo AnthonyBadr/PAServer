@@ -1,0 +1,95 @@
+﻿@page "/Commisions"
+@using System.Security.Claims
+@using PADatabase.Models
+@using Microsoft.AspNetCore.Identity
+@inject NavigationManager _navigation
+@inject ApplicationDbContext _context
+@inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject RoleManager<IdentityRole> _roleManager
+@inject UserManager<IdentityUser> UserManager
+<h3>BTACLESPAYMENT</h3>
+
+<div class="table-responsive">
+    <table class="table table-striped table-bordered shadow-sm">
+        <thead class="table-light">
+            <tr>
+                <th>Payment Number</th>
+                <th>Paymemt</th>
+                <th>Number of Hours</th>
+                <th>Status</th>
+                <th>View Sessions</th>
+
+
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in BTACSummaries)
+            {
+                <tr>
+       
+                    <td>@item.PaymentNumber</td>
+                    <td>@item.Money</td>
+                    <td>@item.NbHours</td>
+                    <td>@item.Status</td>
+                  
+
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-bordered shadow-sm">
+        <thead class="table-light">
+            <tr>
+                <th>Payment Number</th>
+                <th>Paymemt</th>
+                <th>Number of Hours</th>
+                <th>Status</th>
+                <th>View Sessions</th>
+
+
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in LESSumamries)
+            {
+                <tr>
+             
+                    <td>@item.PaymentNumber</td>
+                    <td>@item.Money</td>
+                    <td>@item.NbHours</td>
+                    <td>@item.Status</td>
+                 
+
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+
+
+
+@code {
+
+    List<UserSummaries> BTACSummaries = new List<UserSummaries>();
+    List<UserSummaries> LESSumamries = new List<UserSummaries>();
+    protected override async Task OnInitializedAsync()
+    {
+        // Filter where Status starts with "BTAC"
+        BTACSummaries = _context.UserSummaries
+            .Where(x => x.Status.StartsWith("BTAC"))
+            .ToList();
+
+        // Filter where Status starts with "LES"
+        LESSumamries = _context.UserSummaries
+            .Where(x => x.Status.StartsWith("LES"))
+            .ToList();
+
+    }
+
+
+}

@@ -47,7 +47,7 @@
         }
         else
         {
-            <button @onclick="ToggleDropdown">Toggle Dropdown</button>
+            <button @onclick="ToggleDropdown">Select Student/s</button>
         }
 
 
@@ -90,7 +90,7 @@
                 <ValidationMessage For="@(() => Session.EndTime)" class="text-danger" />
             </div>
 
-           //here 
+
             
             <div class="form-group mb-3">
                 <label for="PackageCodeListId" class="form-label">Package Code</label>
@@ -150,6 +150,7 @@
     public List<DetailsForm> selectedUserDetails { get; set; } = new List<DetailsForm>();
     protected List<string> selectedStudentIds { get; set; } = new List<string>();
     public SessionStudent sessionUser { get; set; }
+    public UserSummaries userSummary { get; set; }
     string authid;
     public double Sum { get; set; } 
     // Dropdown functionality
@@ -208,9 +209,11 @@
 
             StudentsFormList = students.Select(student => new Studentform(student, false)).ToList();
 
-
+          
         }
     }
+
+
 
     private void ToggleDropdown()
     {
@@ -259,7 +262,7 @@
             upd.numberOfHours = TimeDifferenceInHours;
 
             int index = 0;
-
+            double SumofParentsPayment = 0;
             foreach (var studentId in selectedUserDetails)
             {
 
@@ -282,8 +285,39 @@
                 index++;
                 _context.SessionStudents.Add(sessionUser);
 
-          
+                var payedNumber = _context.UserSummaries
+                       .Where(x => x.Status == "Paid")  // Add the status value or variable
+                       .Select(x => x.PaymentNumber).FirstOrDefault();
+                if (payedNumber == null)
+                {
+                    payedNumber = 1;
+                }
+                double s = sessionUser.Session.PackageCodeList.Price;
 
+                SumofParentsPayment = sessionUser.Session.PackageCodeList.Price + SumofParentsPayment;
+                if(  _context.UserSummaries.Where(x => x.UserId == studentId.StudentDetails.UserId  && x.Status == "Pending").Count() == 0)
+                {
+
+
+
+                    userSummary = new UserSummaries(
+                      id: Guid.NewGuid(),
+                      userId: studentId.StudentDetails.UserId,
+                  money: s,
+                      paymentNumber: payedNumber + 1,
+                      nbHours: TimeDifferenceInHours,
+                      status: "Pending",
+                      amountPaid: 0
+                 );
+                    _context.UserSummaries.Add(userSummary);
+                }
+                else
+                {
+                    userSummary = _context.UserSummaries.Where(x => x.UserId == studentId.StudentDetails.UserId && x.Status == "Pending").FirstOrDefault();
+                    userSummary.Money = userSummary.Money + s;
+
+                }
+                sessionUser.UserSummariesId = userSummary.Id;
 
             }
             Sum = 0;
@@ -291,8 +325,14 @@
             {
 
                 Sum = Sum+ sessionUser.Session.PackageCodeList.Price * (1 - (sessionUser.Session.PackageCodeList.percentBTAC + sessionUser.Session.PackageCodeList.percentLES));
-            }
 
+            }
+            var BTACSummary = _context.UserSummaries.Where(x => x.Status == "BTAC").FirstOrDefault();
+            var LESSummary = _context.UserSummaries.Where(x => x.Status == "LES").FirstOrDefault();
+            double btacaddedPayment = SumofParentsPayment * sessionUser.Session.PackageCodeList.percentBTAC;
+            double LESpayment = SumofParentsPayment*sessionUser.Session.PackageCodeList.percentLES;
+            BTACSummary.Money = BTACSummary.Money + btacaddedPayment;
+            LESSummary.Money = LESSummary.Money + LESpayment;
             var sess = _context.Sessions.Where(x => x.Id == Session.Id).FirstOrDefault();
             if (_context.UserSummaries.Where(x => x.UserId == authid && x.Status == "Pending").Count()==0)
             {
@@ -317,20 +357,22 @@
 
                 _context.UserSummaries.Add(userSummary);
 
-                sess.UserSummariesId = userSummary.Id;
 
+                sess.UserSummariesId = userSummary.Id;
+                await _context.SaveChangesAsync();
             }
             else
             {
                 var us = _context.UserSummaries.Where(x => x.UserId == authid && x.Status=="Pending").FirstOrDefault();
                 us.Money = us.Money + Sum;
+                us.NbHours = us.NbHours + TimeDifferenceInHours;
                 sess.UserSummariesId = us.Id;
             }
 
             await _context.SaveChangesAsync();
-            _navigation.NavigateTo("Index");
+            _navigation.NavigateTo("");
         }
-        catch (Exception ex)
+        catch (Exception ex)    
         {
             Console.WriteLine($"Error creating session: {ex.Message}");
         }

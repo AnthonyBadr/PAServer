@@ -1,4 +1,4 @@
-﻿@page "/Session/SessionwithPaymentNumber/{ID:guid}"
+﻿@page "/Session/SessionDetailPayment/{ID:guid}"
 @using System.Security.Claims
 @using PADatabase.Models
 @using Microsoft.AspNetCore.Identity
@@ -23,48 +23,54 @@
                 <th>Start Time</th>
                 <th>End Time</th>
                 <th>Time Difference</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
-
-                 <AuthorizeView Roles="Teacher">
-                    <Authorized>
-          
-
-            @foreach (var item in SessionStudent)
+            @if (!Student)
             {
-                <tr>
-                    <td>@item.Session.SNumber</td>
-                    <td>@item.User.FirstName</td>
-                    <td>@item.Session.Location</td>
-                    <td>
-                        @(
-                            item.Session.PackageCodeList.Price *
-                            (1 - (item.Session.PackageCodeList.percentLES + item.Session.PackageCodeList.percentBTAC))
-                            )
-                    </td>
-                    <td>@item.Session.PackageCodeList.Description</td>
-                    <td>@(item.User?.FirstName ?? "No User")</td>
-                    <td>@item.Session.DateofLesson.ToString("d")</td>
-                    <td>@item.Session.StartTime.ToString("t")</td>
-                    <td>@item.Session.EndTime.ToString("t")</td>
-                    <td>
-                        @{
-                            var startTime = new DateTime(item.Session.DateofLesson.Year, item.Session.DateofLesson.Month, item.Session.DateofLesson.Day, item.Session.StartTime.Hour, item.Session.StartTime.Minute, 0);
-                            var endTime = new DateTime(item.Session.DateofLesson.Year, item.Session.DateofLesson.Month, item.Session.DateofLesson.Day, item.Session.EndTime.Hour, item.Session.EndTime.Minute, 0);
-                            var duration = endTime - startTime;
-                            var totalHours = duration.TotalHours;
-                        }
-                        @totalHours.ToString("0.##") hours
-                    </td>
-                </tr>
-            }
+            <AuthorizeView Roles="Admin">
+                <Authorized>
+
+
+                    @foreach (var item in SessionStudent)
+                    {
+                        <tr>
+                            <td>@item.Session.SNumber</td>
+                            <td>@item.User.FirstName</td>
+                            <td>@item.Session.Location</td>
+                            <td>
+                                @(
+                                    item.Session.PackageCodeList.Price *
+                                    (1 - (item.Session.PackageCodeList.percentLES + item.Session.PackageCodeList.percentBTAC))
+                                    )
+                            </td>
+                            <td>@item.Session.PackageCodeList.Description</td>
+                            <td>@(item.User?.FirstName ?? "No User")</td>
+                            <td>@item.Session.DateofLesson.ToString("d")</td>
+                            <td>@item.Session.StartTime.ToString("t")</td>
+                            <td>@item.Session.EndTime.ToString("t")</td>
+                            <td>
+                                @{
+                                    var startTime = new DateTime(item.Session.DateofLesson.Year, item.Session.DateofLesson.Month, item.Session.DateofLesson.Day, item.Session.StartTime.Hour, item.Session.StartTime.Minute, 0);
+                                    var endTime = new DateTime(item.Session.DateofLesson.Year, item.Session.DateofLesson.Month, item.Session.DateofLesson.Day, item.Session.EndTime.Hour, item.Session.EndTime.Minute, 0);
+                                    var duration = endTime - startTime;
+                                    var totalHours = duration.TotalHours;
+                                }
+                                @totalHours.ToString("0.##") hours
+                            </td>
+                        </tr>
+                    }
 
                 </Authorized>
             </AuthorizeView>
+             }
+            else
+            {
+           
 
-
-            <AuthorizeView Roles="Student">
+         
+            <AuthorizeView Roles="Admin">
                 <Authorized>
 
 
@@ -95,7 +101,7 @@
                 </Authorized>
             </AuthorizeView>
 
-
+            }
 
 
 
@@ -108,13 +114,12 @@
     public Guid ID { get; set; }
 
     private IList<SessionStudent> SessionStudent = new List<SessionStudent>();
-
+    Boolean Student = true;
     protected override async Task OnInitializedAsync()
     {
+        string userId = _context.UserSummaries.Where(x => x.Id == ID).Select(x => x.UserId).FirstOrDefault();
 
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        string authId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var user = await UserManager.FindByIdAsync(authId);
+        var user = await UserManager.FindByIdAsync(userId);
 
         if (user != null && await UserManager.IsInRoleAsync(user, "Teacher"))
         {
@@ -131,7 +136,7 @@
                     .ThenInclude(x => x.PackageCodeList)
                 .Include(x => x.User)
                 .ToListAsync();
-            
+            Student = false;
         }
         else
         {
@@ -148,8 +153,8 @@
                 .Include(x => x.User)
                 .ToListAsync();
         }
-      
-       
+
+
     }
 }
 

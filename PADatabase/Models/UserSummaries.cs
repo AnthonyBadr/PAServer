@@ -28,6 +28,8 @@ namespace PADatabase.Models
         // Navigation property
 
         public virtual ICollection<Session> Sessions { get; set; }
+
+        public virtual ICollection<SessionStudent> SessionStudent { get; set; }
         public virtual UserPersonalDetails UserPersonalDetail { get; set; }
 
         // Default constructor

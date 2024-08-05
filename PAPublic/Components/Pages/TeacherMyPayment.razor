@@ -8,7 +8,7 @@
 @inject RoleManager<IdentityRole> _roleManager
 @inject UserManager<IdentityUser> UserManager
 
-<h3>TeacherMyPayment</h3>
+<h3>Your Payment</h3>
 
 @if (ListUser != null && ListUser.Any())
 {
@@ -54,6 +54,7 @@ else
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         string authid = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        ListUser = _context.UserSummaries.Where(x => x.UserId == authid).ToList();
+        ListUser = _context.UserSummaries.Where(x => x.UserId == authid).OrderBy(x => x.PaymentNumber).ToList();
+        int x = 9;
     }
 }

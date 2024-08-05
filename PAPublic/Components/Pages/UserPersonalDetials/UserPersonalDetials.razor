@@ -5,7 +5,8 @@
 @using Microsoft.AspNetCore.Identity
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @using System.Security.Claims
-<h1 class="mt-4 mb-4">Create New Course</h1>
+
+<h1 class="mt-4 mb-4">Create New User Personal Details</h1>
 
 <h4>UserPersonalDetails</h4>
 <hr />
@@ -39,8 +40,6 @@
                 <!-- Add validation if needed -->
             </div>
 
-
-
             <button type="submit" class="btn btn-primary">Create</button>
             <a href="Index" class="btn btn-secondary ms-2">Back to Courses</a>
         </EditForm>
@@ -48,23 +47,21 @@
 </div>
 
 @code {
-    private UserPersonalDetails UserPersonalDetails = new UserPersonalDetails();
-
+    private UserPersonalDetails UserPersonalDetails { get; set; } = new UserPersonalDetails();
+    private bool Savecreate = false;
 
     protected override async Task OnInitializedAsync()
     {
-
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         string authid = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        UserPersonalDetails.UserId = authid;
-        int x = 5;
-
+        UserPersonalDetails = await _context.UserPersonalDetails
+            .FirstOrDefaultAsync(x => x.UserId == authid) ?? new UserPersonalDetails { UserId = authid };
     }
 
     private async Task CreateUserPersonalDetails()
     {
         _context.UserPersonalDetails.Add(UserPersonalDetails);
         await _context.SaveChangesAsync();
-        _navigation.NavigateTo("Course");
+        _navigation.NavigateTo("Index");
     }
 }

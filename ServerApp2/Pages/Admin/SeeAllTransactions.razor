@@ -1,0 +1,83 @@
+﻿@page "/SeeAllTransaction"
+@using System.Security.Claims
+@using PADatabase.Models
+@using Microsoft.AspNetCore.Identity
+@inject NavigationManager _navigation
+@inject ApplicationDbContext _context
+@inject IJSRuntime JSRuntime
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject RoleManager<IdentityRole> _roleManager
+@inject UserManager<IdentityUser> UserManager
+
+<h3>See All Transactions</h3>
+
+<label>Select User</label>
+<select id="userFilter" class="form-select" @onchange="OnUserSelected">
+    <option value="empty">--------------------</option>
+    @foreach (var user in UsersList)
+    {
+        <option value="@user.UserId">@user.FirstName @user.LastName</option>
+    }
+</select>
+
+<br />
+
+<div class="table-responsive">
+    <table class="table table-striped table-bordered shadow-sm">
+        <thead class="table-light">
+            <tr>
+                <th>Amount</th>
+                <th>Comment</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (TransaLIst != null && TransaLIst.Any())
+            {
+                @foreach (var item in TransaLIst)
+                {
+                    <tr>
+                        <td>$ @item.amount</td> <!-- Capitalize 'Amount' to match C# property convention -->
+                        <td>@item.comment</td> <!-- Capitalize 'Comment' to match C# property convention -->
+                        <td>@item.date_T</td> <!-- Capitalize 'Date_T' to match C# property convention -->
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="3">No records found.</td> <!-- Adjusted colspan to match the number of columns -->
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    string userseelected;
+    private List<Transaction> TransaLIst = new List<Transaction>();
+    private List<UserPersonalDetails> UsersList = new List<UserPersonalDetails>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        UsersList = _context.UserPersonalDetails.ToList();
+        TransaLIst = _context.Transactions.ToList();
+    }
+
+    public async Task OnUserSelected(ChangeEventArgs e)
+    {
+        userseelected = e.Value.ToString();
+
+        if (!string.IsNullOrEmpty(userseelected) && userseelected != "empty")
+        {
+            TransaLIst = _context.Transactions.Where(x => x.UserId == userseelected).ToList();
+        }
+        else
+        {
+            TransaLIst = _context.Transactions.ToList(); // Reset list if no user is selected
+        }
+
+        StateHasChanged(); // Update UI after filtering
+    }
+}

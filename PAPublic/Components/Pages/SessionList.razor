@@ -1,4 +1,4 @@
-﻿@page "/Session"
+﻿@page "/Sessions"
 <h3>Sessions</h3>
 @using System.Security.Claims
 @using PADatabase.Models
@@ -50,7 +50,7 @@ else
                     <th>Start Time</th>
                     <th>End Time</th>
                     <th>Time Difference</th>
-                    <th>Actions</th>
+                    
                 </tr>
             </thead>
             <tbody>
@@ -80,12 +80,17 @@ else
                             }
                             @totalHours.ToString("0.##") hours
                         </td>
-                        @if (item.DeleteButton == "true")
+                        @if (role!="Student")
                         {
-                            <td>
-                                <button @onclick="() =>  ConfirmDelete(item.Session.Id)" class="btn btn-danger">Delete</button>
-                            </td>
+
+                            @if (item.DeleteButton == "true")
+                            {
+                                <td>
+                                    <button @onclick="() =>  ConfirmDelete(item.Session.Id)" class="btn btn-danger">Delete</button>
+                                </td>
+                            }
                         }
+
                     </tr>
                 }
             </tbody>
@@ -121,7 +126,7 @@ else
     private int currentPage = 1;
     private int totalPages = 1;
     private int pageSize = 5;
-
+    string role;
     private async Task ConfirmDelete(Guid sessionId)
     {
         bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", new object[] { "Are you sure you want to delete this session?" });
@@ -132,21 +137,34 @@ else
     private async Task DeleteSession(Guid sessionId)
     {
         double sumtoRemove = 0;
+        double totlalSumSessionforperc = 0;
         var SessionstoDelete = _context.SessionStudents.Where(x => x.SessionId == sessionId).ToList();
         foreach (var item in SessionstoDelete)
         {
             double priceremoved = item.Session.PackageCodeList.Price * (1 - (item.Session.PackageCodeList.percentLES + item.Session.PackageCodeList.percentBTAC));
+            double oenSessionStudent = item.Session.PackageCodeList.Price;
             sumtoRemove = sumtoRemove +priceremoved;
+            totlalSumSessionforperc = totlalSumSessionforperc + item.Session.PackageCodeList.Price;
+            var StuentPayment = _context.UserSummaries.Where(x => x.Id == item.UserSummariesId).FirstOrDefault();
+            StuentPayment.Money = StuentPayment.Money - oenSessionStudent;
             _context.SessionStudents.Remove(item);
         }
-        
+
+
         var Sessionone = _context.Sessions.Where(x => x.Id == sessionId).FirstOrDefault();
+        var BTACSummary = _context.UserSummaries.Where(x => x.Status == "BTAC").FirstOrDefault();
+        var LESSummary = _context.UserSummaries.Where(x => x.Status == "LES").FirstOrDefault();
+        double btacaddedPayment = totlalSumSessionforperc * Sessionone.PackageCodeList.percentBTAC;
+        double LESpayment = totlalSumSessionforperc * Sessionone.PackageCodeList.percentLES;
+        BTACSummary.Money = BTACSummary.Money - btacaddedPayment;
+        LESSummary.Money = LESSummary.Money - LESpayment;
+
         var TeacherPayment = _context.UserSummaries.Where(x => x.Id ==Sessionone.UserSummariesId).FirstOrDefault();
         _context.Sessions.Remove(Sessionone);
-     
+
         TeacherPayment.Money = TeacherPayment.Money - sumtoRemove;
         _context.SaveChanges();
-        await JSRuntime.InvokeVoidAsync("eval", "location.reload();");
+
     }
 
 
@@ -169,13 +187,35 @@ else
         PackageCodeList = await _context.PackageCodeLists.ToListAsync();
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         string authid = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
+         role = authState.User.FindFirstValue(ClaimTypes.Role);
 
-        Sessions = _context.Sessions.Where(c => c.UserId == authid).ToList();
-        sessionIds = Sessions.Select(s => s.Id).ToList();
-        callallSession();
+
+        if (role == "Student")
+        {
+            SessionStudent = _context.SessionStudents.Where(c => c.UserId == authid)
+             .Include(p => p.User)
+            .Include(p => p.Session)
+                .ThenInclude(s => s.PackageCodeList)
+            .ToList();
+            
+            UpdatePagination();
+        }else
+        {
+
+            Sessions = _context.Sessions.Where(c => c.UserId == authid).ToList();
+            sessionIds = Sessions.Select(s => s.Id).ToList();
+            callallSession();
+        }
+
 
         UserPersonalDetails = _context.UserPersonalDetails.ToList();
+     
+
+
     }
+
+
+  
 
     private void callallSession()
     {
@@ -187,6 +227,7 @@ else
             .ToList();
 
         UpdatePagination();
+        StateHasChanged();
     }
 
 

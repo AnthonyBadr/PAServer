@@ -1,0 +1,186 @@
+﻿@page "/AllStudents/MyPayment"
+@using System.Security.Claims
+@using PADatabase.Models
+@using Microsoft.AspNetCore.Identity
+@inject NavigationManager _navigation
+@inject ApplicationDbContext _context
+@inject IJSRuntime JSRuntime
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject RoleManager<IdentityRole> _roleManager
+@inject UserManager<IdentityUser> UserManager
+
+<h3>View All Payments</h3>
+
+<label>Select Type of Payment</label>
+<select id="typeFilter" class="form-select" @onchange="OnTypeSelected">
+    <option value="empty">--------------------</option>
+    @foreach (var type in type)
+    {
+        <option value="@type">@type</option>
+    }
+</select>
+
+<br />
+
+<label>Select User</label>
+<select id="userFilter" class="form-select" @onchange="OnUserSelected">
+    <option value="empty">--------------------</option>
+    @foreach (var user in UsersList)
+    {
+        <option value="@user.UserId">@user.FirstName @user.LastName</option>
+    }
+</select>
+
+<br />
+
+<label>Select Status</label>
+<select id="statusFilter" class="form-select" @onchange="OnStatusSelected">
+    <option value="empty">--------------------</option>
+    @foreach (var status in StatusList)
+    {
+        <option value="@status">@status</option>
+    }
+</select>
+
+<div class="table-responsive">
+    <table class="table table-striped table-bordered shadow-sm">
+        <thead class="table-light">
+            <tr>
+                <th>Name</th>
+                <th>Payment #</th>
+                <th>Amount</th>
+                <th>Number of Hours</th>
+                <th>Status</th>
+                <th>View Sessions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (userSummaries != null && userSummaries.Any())
+            {
+                @foreach (var item in userSummaries)
+                {
+                    <tr>
+                        <td>@item.UserPersonalDetail.FirstName</td>
+                        <td>@item.PaymentNumber</td>
+                        <td>@item.Money</td>
+                        <td>@item.NbHours</td>
+                        <td>@item.Status</td>
+                        <td><a href="/Session/SessionDetailPayment/@item.Id" class="btn btn-primary btn-sm me-2">Sessions</a></td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="6">No records found.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    string selectedType;
+    string userseelected;
+    string status;
+
+    private List<string> type = new List<string>();
+    private List<string> StatusList = new List<string>();
+    private List<UserPersonalDetails> UsersList = new List<UserPersonalDetails>();
+    List<UserSummaries> userSummaries = new List<UserSummaries>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        UsersList = _context.UserPersonalDetails.ToList();
+        type.AddRange(new[] { "Parent", "Teacher", "LES", "BTAC" });
+        StatusList.AddRange(new[] { "Waiting", "Paid", "Pending" });
+    }
+
+    public async Task Filter()
+    {
+        if (selectedType == "Parent")
+        {
+            var studentRole = await _roleManager.Roles.SingleOrDefaultAsync(r => r.Name == "Student");
+            var studentIds = (await UserManager.GetUsersInRoleAsync(studentRole.Name)).Select(u => u.Id).ToList();
+
+            userSummaries = _context.UserSummaries
+                .Where(x => studentIds.Contains(x.UserId))
+                .Include(x => x.UserPersonalDetail)
+                .Include(x => x.Sessions).ThenInclude(s => s.PackageCodeList)
+                .OrderBy(x => x.UserPersonalDetail.FirstName)
+                .ToList();
+
+            UsersList = _context.UserPersonalDetails
+                .Where(x => studentIds.Contains(x.UserId))
+                .ToList();
+        }
+        else if (selectedType == "Teacher")
+        {
+            var tutorRole = await _roleManager.Roles.SingleOrDefaultAsync(r => r.Name == "Teacher");
+            var tutorIds = (await UserManager.GetUsersInRoleAsync(tutorRole.Name)).Select(u => u.Id).ToList();
+
+            userSummaries = _context.UserSummaries
+                .Where(x => tutorIds.Contains(x.UserId))
+                .Include(x => x.UserPersonalDetail)
+                .Include(x => x.Sessions).ThenInclude(s => s.PackageCodeList)
+                .Include(x => x.SessionStudent)
+                .OrderBy(x => x.UserPersonalDetail.FirstName)
+                .ToList();
+
+            UsersList = _context.UserPersonalDetails
+                .Where(x => tutorIds.Contains(x.UserId))
+                .ToList();
+        }
+        else if (selectedType == "LES")
+        {
+            userSummaries = _context.UserSummaries
+                .Where(x => x.Status.StartsWith("LES"))
+                .Include(x => x.UserPersonalDetail)
+                .Include(x => x.Sessions).ThenInclude(x => x.PackageCodeList)
+                .Include(x => x.SessionStudent)
+                .OrderBy(x => x.UserPersonalDetail.FirstName)
+                .ToList();
+        }
+        else if (selectedType == "BTAC")
+        {
+            userSummaries = _context.UserSummaries
+                .Where(x => x.Status.StartsWith("BTAC"))
+                .Include(x => x.UserPersonalDetail)
+                .Include(x => x.Sessions).ThenInclude(x => x.PackageCodeList)
+                .Include(x => x.SessionStudent)
+                .OrderBy(x => x.UserPersonalDetail.FirstName)
+                .ToList();
+        }
+
+        if (!string.IsNullOrEmpty(userseelected) && userseelected != "empty")
+        {
+            userSummaries = userSummaries.Where(x => x.UserId == userseelected).ToList();
+        }
+
+        if (!string.IsNullOrEmpty(status) && status != "empty")
+        {
+            userSummaries = userSummaries.Where(x => x.Status == status).ToList();
+        }
+
+        StateHasChanged();
+    }
+
+    public async Task OnUserSelected(ChangeEventArgs e)
+    {
+        userseelected = e.Value.ToString();
+        await Filter();
+    }
+
+    public async Task OnStatusSelected(ChangeEventArgs e)
+    {
+        status = e.Value.ToString();
+        await Filter();
+    }
+
+    public async Task OnTypeSelected(ChangeEventArgs e)
+    {
+        selectedType = e.Value.ToString();
+        await Filter();
+    }
+}

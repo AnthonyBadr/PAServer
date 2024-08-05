@@ -1,0 +1,127 @@
+﻿@page "/Email"
+@using System.Net;
+@using System.Net.Mail;
+@using Microsoft.AspNetCore.Identity;
+@using MailKit.Net.Smtp;
+@using PADatabase.Forms
+@using MailKit;
+@using MimeKit;
+@inject NavigationManager Navigation
+@inject ApplicationDbContext _context
+@inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider AuthStateProvider
+@inject RoleManager<IdentityRole> RoleManager
+@inject UserManager<IdentityUser> UserManager
+
+<div class="center-container">
+    <button class="huge-button" @onclick="OnButtonClick">Huge Button</button>
+</div>
+
+<style>
+    .center-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin-top: -50px;
+    }
+
+    .huge-button {
+        font-size: 48px;
+        padding: 20px 40px;
+        background-color: red;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+    }
+
+        .huge-button:hover {
+            background-color: darkred;
+        }
+</style>
+
+@code {
+
+    List<UserSummaries> UserSummaries = new List<UserSummaries>();
+
+
+    public async Task<List<EmailInfo>> FindEmailAsync(string email)
+    {
+        var result = await (from us in _context.UserSummaries
+                            join up in _context.UserPersonalDetails on us.UserId equals up.UserId
+                            join u in _context.Users on up.UserId equals u.Id
+                            where (us.Status == "Waiting" || us.Status == "Pending") && u.UserName == email
+                            select new EmailInfo
+                        {
+                            UserName = u.UserName,
+                            FirstName = up.FirstName,
+                            LastName = up.LastName,
+                            Money = us.Money,
+                            Status = us.Status
+                        }).ToListAsync();
+
+        return result;
+    }
+
+
+
+
+    private async Task OnButtonClick()
+    {
+
+        var UserEmail = UserManager.Users.Select(u=>u.UserName).ToList();
+
+        foreach (var item in UserEmail)
+        {
+            var emailsending= await FindEmailAsync(item);
+
+            if (emailsending.Count == 0)
+            {
+
+            }else
+            {
+                foreach (var i in emailsending)
+                {
+                    
+              
+                string fromMail = "anthonybadr40@gmail.com";
+                string fromPassword = "fqsunsbeykwyoojg";
+
+                MailMessage message = new MailMessage();
+                message.From = new MailAddress(fromMail);
+                message.Subject = "Your Payment";
+                message.To.Add(new MailAddress(item));
+                message.Body = $"This email is to inform {i.FirstName} that you have payment of {i.Money} with a status of {i.Status}    "; // Include the variable x in the email body
+                message.IsBodyHtml = false; // Set to false for plain text
+
+                try
+                {
+                    var smtpClient = new System.Net.Mail.SmtpClient("smtp.gmail.com")
+                        {
+                            Port = 587,
+                            Credentials = new NetworkCredential(fromMail, fromPassword),
+                            EnableSsl = true,
+                        };
+
+                    smtpClient.Send(message);
+
+                    // If email sent successfully, show success message
+                    await JSRuntime.InvokeVoidAsync("alert", "Email sent successfully!");
+                }
+                catch (Exception ex)
+                {
+                    // If there is an error, show failure message
+                    await JSRuntime.InvokeVoidAsync("alert", "Failed to send email. Error: " + ex.Message);
+                }
+
+                }
+            }
+
+
+        }
+      
+
+    
+    }
+}

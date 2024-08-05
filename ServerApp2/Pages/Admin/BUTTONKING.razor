@@ -1,0 +1,89 @@
+﻿@page "/BUTTONKING"
+@using System.Security.Claims
+@using PADatabase.Models
+@using Microsoft.AspNetCore.Identity
+@inject NavigationManager _navigation
+@inject ApplicationDbContext _context
+@inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject RoleManager<IdentityRole> _roleManager
+@inject UserManager<IdentityUser> UserManager
+
+<div class="center-container">
+    <button class="huge-button" @onclick="OnButtonClick">Huge Button</button>
+</div>
+
+<style>
+    .center-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin-top: -50px; /* Adjust this margin to push the button up */
+    }
+
+    .huge-button {
+        font-size: 48px;
+        padding: 20px 40px;
+        background-color: red;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+    }
+
+        .huge-button:hover {
+            background-color: darkred;
+        }
+</style>
+
+@code {
+    private async Task OnButtonClick()
+    {
+        try
+        {
+            var UserSummaries = _context.UserSummaries.Where(x => x.Status == "Pending").ToList();
+            var BTACSummary = _context.UserSummaries.Where(x => x.Status == "BTAC").FirstOrDefault();
+            var LESSummary = _context.UserSummaries.Where(x => x.Status == "LES").FirstOrDefault();
+
+            if (BTACSummary != null) BTACSummary.Status = "BTACwp";
+            if (LESSummary != null) LESSummary.Status = "LESwp";
+
+            var userSummary = new UserSummaries(
+                id: Guid.NewGuid(),
+                userId: "cc0cedca-d1aa-447d-898b-03164dd8042a",
+                money: 0,
+                paymentNumber: 0,
+                nbHours: 0,
+                status: "BTAC",
+                amountPaid: 0
+            );
+
+            var userSummary2 = new UserSummaries(
+                id: Guid.NewGuid(),
+                userId: "e01ffefc-6d3d-4de0-b47c-509eb043f1d7",
+                money: 0,
+                paymentNumber: 0,
+                nbHours: 0,
+                status: "LES",
+                amountPaid: 0
+            );
+
+            _context.UserSummaries.Add(userSummary);
+            _context.UserSummaries.Add(userSummary2);
+
+            foreach (var item in UserSummaries)
+            {
+                item.Status = "Waiting";
+            }
+
+            await _context.SaveChangesAsync();
+
+            await JSRuntime.InvokeVoidAsync("alert", "Operation successful!");
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"An error occurred: {ex.Message}");
+        }
+    }
+}

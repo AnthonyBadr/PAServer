@@ -72,9 +72,15 @@ public class ApplicationDbContext : IdentityDbContext
      .HasForeignKey(us => us.UserId)
      .HasPrincipalKey(ud => ud.UserId);
 
+
         modelBuilder.Entity<Session>()
                 .HasOne(s => s.UserSummaries)
                 .WithMany(us => us.Sessions)
+                .HasForeignKey(s => s.UserSummariesId);
+
+        modelBuilder.Entity<SessionStudent>()
+                .HasOne(s => s.UserSummaries)
+                .WithMany(us => us.SessionStudent)
                 .HasForeignKey(s => s.UserSummariesId);
 
         base.OnModelCreating(modelBuilder);

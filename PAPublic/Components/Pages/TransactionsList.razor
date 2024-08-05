@@ -1,0 +1,54 @@
+﻿@page "/TransactionsUser"
+<h3>Transactions</h3>
+@using System.Security.Claims
+@using PADatabase.Models
+@using Microsoft.AspNetCore.Identity
+@inject NavigationManager _navigation
+@inject ApplicationDbContext _context
+@inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject RoleManager<IdentityRole> _roleManager
+@inject UserManager<IdentityUser> UserManager
+
+
+<div class="table-responsive">
+    <table class="table table-striped table-bordered shadow-sm">
+        <thead class="table-light">
+            <tr>
+                <th>Date</th>
+                <th>Amount</th>
+
+                <th>Comment</th>
+             
+
+
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in trans)
+            {
+                <tr>
+                    <td>@item.date_T</td>
+                    <td>$ @item.amount</td>
+                    <td>@item.comment</td>
+                  
+
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    List<Transaction> trans = new List<Transaction>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        string authid = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        trans = await _context.Transactions
+                              .Where(x => x.UserId == authid)
+                              .ToListAsync();
+    }
+}

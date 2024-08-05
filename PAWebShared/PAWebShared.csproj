@@ -24,6 +24,14 @@
 		<ProjectReference Include="..\PADatabase\PADatabase.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <EditorConfigFiles Remove="C:\Users\antho\source\repos\PAServer\PAWebShared\Areas\Identity\.editorconfig" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="C:\Users\antho\source\repos\PAServer\PAWebShared\Areas\Identity\.editorconfig" />
+	</ItemGroup>
+
 
 
 </Project>
