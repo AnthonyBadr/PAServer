@@ -334,6 +334,30 @@ namespace PADatabase.Migrations
                     b.ToTable("CourseUsers");
                 });
 
+            modelBuilder.Entity("PADatabase.Models.Infromation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserPersonalDetailUserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserPersonalDetailUserId");
+
+                    b.ToTable("Infromation");
+                });
+
             modelBuilder.Entity("PADatabase.Models.Location", b =>
                 {
                     b.Property<Guid>("Id")
@@ -394,6 +418,12 @@ namespace PADatabase.Migrations
                     b.Property<double>("Price")
                         .HasColumnType("float");
 
+                    b.Property<double>("percentBTAC")
+                        .HasColumnType("float");
+
+                    b.Property<double>("percentLES")
+                        .HasColumnType("float");
+
                     b.HasKey("Id");
 
                     b.ToTable("PackageCodeLists");
@@ -447,8 +477,11 @@ namespace PADatabase.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateOnly>("Date")
+                    b.Property<DateOnly>("DateofLesson")
                         .HasColumnType("date");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time");
 
                     b.Property<string>("Location")
                         .HasColumnType("nvarchar(max)");
@@ -456,9 +489,18 @@ namespace PADatabase.Migrations
                     b.Property<Guid>("PackageCodeListId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("SNumber")
+                        .HasColumnType("int");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time");
+
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid?>("UserSummariesId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("description")
                         .IsRequired()
@@ -470,6 +512,8 @@ namespace PADatabase.Migrations
 
                     b.HasIndex("UserId");
 
+                    b.HasIndex("UserSummariesId");
+
                     b.ToTable("Sessions");
                 });
 
@@ -479,6 +523,10 @@ namespace PADatabase.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("DeleteButton")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<Guid>("SessionId")
                         .HasColumnType("uniqueidentifier");
 
@@ -486,11 +534,16 @@ namespace PADatabase.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<Guid?>("UserSummariesId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.HasIndex("SessionId");
 
                     b.HasIndex("UserId");
+
+                    b.HasIndex("UserSummariesId");
 
                     b.ToTable("SessionStudents");
                 });
@@ -566,9 +619,46 @@ namespace PADatabase.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<double>("numberOfHours")
+                        .HasColumnType("float");
+
                     b.HasKey("UserId");
 
                     b.ToTable("UserPersonalDetails");
+                });
+
+            modelBuilder.Entity("PADatabase.Models.UserSummaries", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<double>("AmountPaid")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Money")
+                        .HasColumnType("float");
+
+                    b.Property<double>("NbHours")
+                        .HasColumnType("float");
+
+                    b.Property<int>("PaymentNumber")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserSummaries");
                 });
 
             modelBuilder.Entity("Assignment", b =>
@@ -674,6 +764,15 @@ namespace PADatabase.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("PADatabase.Models.Infromation", b =>
+                {
+                    b.HasOne("PADatabase.Models.UserPersonalDetails", "UserPersonalDetail")
+                        .WithMany("Infromation")
+                        .HasForeignKey("UserPersonalDetailUserId");
+
+                    b.Navigation("UserPersonalDetail");
+                });
+
             modelBuilder.Entity("PADatabase.Models.PaymentUser", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
@@ -697,9 +796,15 @@ namespace PADatabase.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("PADatabase.Models.UserSummaries", "UserSummaries")
+                        .WithMany("Sessions")
+                        .HasForeignKey("UserSummariesId");
+
                     b.Navigation("PackageCodeList");
 
                     b.Navigation("User");
+
+                    b.Navigation("UserSummaries");
                 });
 
             modelBuilder.Entity("PADatabase.Models.SessionStudent", b =>
@@ -707,18 +812,25 @@ namespace PADatabase.Migrations
                     b.HasOne("PADatabase.Models.Session", "Session")
                         .WithMany("SessionStudents")
                         .HasForeignKey("SessionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("PADatabase.Models.UserPersonalDetails", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("PADatabase.Models.UserSummaries", "UserSummaries")
+                        .WithMany("SessionStudent")
+                        .HasForeignKey("UserSummariesId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Session");
 
                     b.Navigation("User");
+
+                    b.Navigation("UserSummaries");
                 });
 
             modelBuilder.Entity("PADatabase.Models.Transaction", b =>
@@ -760,9 +872,34 @@ namespace PADatabase.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("PADatabase.Models.UserSummaries", b =>
+                {
+                    b.HasOne("PADatabase.Models.UserPersonalDetails", "UserPersonalDetail")
+                        .WithMany("UserSummaries")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("UserPersonalDetail");
+                });
+
             modelBuilder.Entity("PADatabase.Models.Session", b =>
                 {
                     b.Navigation("SessionStudents");
+                });
+
+            modelBuilder.Entity("PADatabase.Models.UserPersonalDetails", b =>
+                {
+                    b.Navigation("Infromation");
+
+                    b.Navigation("UserSummaries");
+                });
+
+            modelBuilder.Entity("PADatabase.Models.UserSummaries", b =>
+                {
+                    b.Navigation("SessionStudent");
+
+                    b.Navigation("Sessions");
                 });
 #pragma warning restore 612, 618
         }

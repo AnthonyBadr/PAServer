@@ -11,6 +11,18 @@
 @inject UserManager<IdentityUser> UserManager
 
 
+
+@if (loading)
+{
+    <div class="loading-overlay">
+        <div class="loading-spinner">
+            Loading...
+        </div>
+    </div>
+}
+else
+{
+
 <div class="table-responsive">
     <table class="table table-striped table-bordered shadow-sm">
         <thead class="table-light">
@@ -39,16 +51,22 @@
     </table>
 </div>
 
+
+}
 @code {
+    private bool loading;
     List<Transaction> trans = new List<Transaction>();
 
     protected override async Task OnInitializedAsync()
     {
+        loading = true;
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         string authid = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         trans = await _context.Transactions
                               .Where(x => x.UserId == authid)
                               .ToListAsync();
+        loading = false;
+
     }
 }

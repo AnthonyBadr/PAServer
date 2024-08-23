@@ -29,6 +29,17 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="Areas\Identity\Pages\Account\LOGO.png" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="Areas\Identity\Pages\Account\LOGO.png">
+	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+	  </Content>
+	</ItemGroup>
+
+	<ItemGroup>
 	  <None Include="C:\Users\antho\source\repos\PAServer\PAWebShared\Areas\Identity\.editorconfig" />
 	</ItemGroup>
 

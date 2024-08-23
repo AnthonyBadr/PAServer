@@ -1,5 +1,5 @@
 ﻿@page "/Session/Create"
-<h3>Add Package Code List</h3>
+<h3>Add Session</h3>
 @using PADatabase.Models
 @using PADatabase.Forms
 @using Microsoft.AspNetCore.Identity
@@ -9,6 +9,18 @@
 @inject RoleManager<IdentityRole> _roleManager
 @inject UserManager<IdentityUser> UserManager
 @using System.Security.Claims
+
+
+@if (loading)
+{
+    <div class="loading-overlay">
+        <div class="loading-spinner">
+            Loading...
+        </div>
+    </div>
+}
+else
+{
 
 <div class="row justify-content-center">
     <div class="col-md-6 col-lg-4">
@@ -69,7 +81,7 @@
             </div>
 
             <div class="form-group mb-3">
-                <label for="DateofLesson" class="form-label">Location</label>
+                <label for="DateofLesson" class="form-label">Date of Session</label>
                 <InputDate id="DateofLesson" @bind-Value="Session.DateofLesson" class="form-control" />
                 <ValidationMessage For="@(() => Session.DateofLesson)" class="text-danger" />
             </div>
@@ -115,6 +127,8 @@
     </div>
 </div>
 
+}
+
 <style>
     /* Inline CSS for ChecklistDropdown component */
     .dropdown {
@@ -131,18 +145,17 @@
         z-index: 1;
         max-height: 200px; /* Max height of the dropdown content */
         overflow-y: auto; /* Enable vertical scrollbar */
-    }
-
-    .scroll-box {
-        padding: 10px;
+        padding: 10px; /* Add padding to the dropdown content */
     }
 
     .checklist-item {
         margin-bottom: 5px;
     }
 </style>
+
 @code {
     private Session Session = new Session();
+    private bool loading;
     private IList<PackageCodeList> PackageCodeList = new List<PackageCodeList>();
     protected List<Studentform> selectedStduentsafterChecking { get; set; } = new List<Studentform>();
     protected List<Studentform> StudentsFormList { get; set; } = new List<Studentform>();
@@ -179,38 +192,32 @@
 
     protected override async Task OnInitializedAsync()
     {
+        loading = true;
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         authid = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         Session.DateofLesson = DateOnly.FromDateTime(DateTime.Now);
 
-        PackageCodeList = _context.PackageCodeLists.ToList();
+        PackageCodeList = await _context.PackageCodeLists.ToListAsync();
 
         var studentRole = await _roleManager.Roles.SingleOrDefaultAsync(r => r.Name == "Student");
         if (studentRole != null)
         {
-            var students = (await UserManager.GetUsersInRoleAsync(studentRole.Name)).ToList();
-            var studentIds = (await UserManager.GetUsersInRoleAsync(studentRole.Name)).Select(u => u.Id).ToList();
+            var students = await UserManager.GetUsersInRoleAsync(studentRole.Name);
+            var studentIds = students.Select(u => u.Id).ToList();
             var userDetails = await _context.UserPersonalDetails
-      .Where(upd => studentIds.Contains(upd.UserId))
-      .ToListAsync();
+                .Where(upd => studentIds.Contains(upd.UserId))
+                .ToListAsync();
 
-
-            foreach (var x in userDetails)
-            {
-                var detial = new DetailsForm
-                    {
-                        StudentDetails = x,
-                        IsChecked = false
-                    };
-                UserPersonalDetailsList.Add(detial);
-            }
-
+            UserPersonalDetailsList = userDetails.Select(x => new DetailsForm
+                {
+                    StudentDetails = x,
+                    IsChecked = false
+                }).ToList();
 
             StudentsFormList = students.Select(student => new Studentform(student, false)).ToList();
-
-          
         }
+        loading = false;
     }
 
 
@@ -229,7 +236,7 @@
     }
 
 
-    private void OnStudentCheckedChanged(DetailsForm DetailsForm)
+    private async  void OnStudentCheckedChanged(DetailsForm DetailsForm)
     {
         if (DetailsForm.IsChecked)
         {
@@ -258,7 +265,6 @@
 
             var upd = _context.UserPersonalDetails.Where(x => x.UserId == authid).FirstOrDefault();
 
-            // Assuming `upd` is an instance of UserPersonalDetails
             upd.numberOfHours = TimeDifferenceInHours;
 
             int index = 0;
@@ -315,7 +321,7 @@
                 {
                     userSummary = _context.UserSummaries.Where(x => x.UserId == studentId.StudentDetails.UserId && x.Status == "Pending").FirstOrDefault();
                     userSummary.Money = userSummary.Money + s;
-
+                    userSummary.NbHours = userSummary.NbHours + TimeDifferenceInHours;
                 }
                 sessionUser.UserSummariesId = userSummary.Id;
 

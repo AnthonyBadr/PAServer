@@ -43,14 +43,17 @@ public class ApplicationDbContext : IdentityDbContext
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<SessionStudent>()
-            .HasOne(ss => ss.Session)
-            .WithMany(s => s.SessionStudents)
-            .HasForeignKey(ss => ss.SessionId);
+    .HasOne(ss => ss.Session)
+    .WithMany(s => s.SessionStudents)
+    .HasForeignKey(ss => ss.SessionId)
+    .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<SessionStudent>()
             .HasOne(ss => ss.User)
             .WithMany()
-            .HasForeignKey(ss => ss.UserId);
+            .HasForeignKey(ss => ss.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
 
         modelBuilder.Entity<UserPersonalDetails>()
            .HasKey(upd => upd.UserId);
@@ -79,9 +82,13 @@ public class ApplicationDbContext : IdentityDbContext
                 .HasForeignKey(s => s.UserSummariesId);
 
         modelBuilder.Entity<SessionStudent>()
-                .HasOne(s => s.UserSummaries)
-                .WithMany(us => us.SessionStudent)
-                .HasForeignKey(s => s.UserSummariesId);
+     .HasOne(s => s.UserSummaries)
+     .WithMany(us => us.SessionStudent)
+     .HasForeignKey(s => s.UserSummariesId)
+     .OnDelete(DeleteBehavior.Restrict); 
+
+
+
 
         base.OnModelCreating(modelBuilder);
     }

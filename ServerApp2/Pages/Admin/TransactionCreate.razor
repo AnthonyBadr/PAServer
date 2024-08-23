@@ -44,7 +44,7 @@
 
             <br />
 
-            <label>Select Person to Pay to receive from</label>
+            <label>Select UserPayement</label>
             <select id="userFilter" class="form-select" @bind="UsId">
                 <option value="">--------------------</option>
                 @foreach (var user in userPayments)
@@ -159,9 +159,21 @@
     public async Task OnUserSelected(ChangeEventArgs e)
     {
         userID = e.Value.ToString();
-        userPayments = _context.UserSummaries
-     .Where(x => x.UserId == userID && (x.Status == "Waiting" || x.Status == "Pending"))
-     .ToList();
+
+        if (userID == "e01ffefc-6d3d-4de0-b47c-509eb043f1d7")
+        {
+            userPayments = _context.UserSummaries
+      .Where(x => x.Status.StartsWith("LES"))
+      .ToList();
+
+        }else
+        {
+            userPayments = _context.UserSummaries
+    .Where(x => x.UserId == userID && (x.Status == "Waiting" || x.Status == "Pending"))
+    .ToList();
+        }
+
+   
     }
 
     public async Task OnTypeSelected(ChangeEventArgs e)
@@ -174,7 +186,9 @@
 
         if (selectedType == "LES")
         {
-            userDetails.Clear();
+            userDetails =  _context.UserPersonalDetails
+                   .Where(upd => upd.FirstName=="LES")
+                   .ToList();
         }
         else if (selectedType == "Parent")
         {

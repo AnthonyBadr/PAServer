@@ -38,8 +38,6 @@ namespace PADatabase.Models
 
         public Guid? UserSummariesId { get; set; }
 
-
-
         public int SNumber { get; set; }
 
     }       

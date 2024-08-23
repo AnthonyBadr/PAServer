@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace PADatabase.Migrations
 {
     /// <inheritdoc />
-    public partial class _3 : Migration
+    public partial class elie : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -77,7 +77,9 @@ namespace PADatabase.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Pckg_Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Price = table.Column<double>(type: "float", nullable: false)
+                    Price = table.Column<double>(type: "float", nullable: false),
+                    percentLES = table.Column<double>(type: "float", nullable: false),
+                    percentBTAC = table.Column<double>(type: "float", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -271,7 +273,8 @@ namespace PADatabase.Migrations
                     LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Gender = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    DateOfBirth = table.Column<DateOnly>(type: "date", nullable: false)
+                    DateOfBirth = table.Column<DateOnly>(type: "date", nullable: false),
+                    numberOfHours = table.Column<double>(type: "float", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -305,27 +308,6 @@ namespace PADatabase.Migrations
                         name: "FK_UserLocation_Location_LocationId",
                         column: x => x.LocationId,
                         principalTable: "Location",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Sessions",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Location = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    PackageCodeListId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Sessions", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Sessions_PackageCodeLists_PackageCodeListId",
-                        column: x => x.PackageCodeListId,
-                        principalTable: "PackageCodeLists",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -377,24 +359,41 @@ namespace PADatabase.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "SessionStudents",
+                name: "Infromation",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    SessionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    Message = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UserPersonalDetailUserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SessionStudents", x => x.Id);
+                    table.PrimaryKey("PK_Infromation", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_SessionStudents_Sessions_SessionId",
-                        column: x => x.SessionId,
-                        principalTable: "Sessions",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        name: "FK_Infromation_UserPersonalDetails_UserPersonalDetailUserId",
+                        column: x => x.UserPersonalDetailUserId,
+                        principalTable: "UserPersonalDetails",
+                        principalColumn: "UserId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserSummaries",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
+                    Money = table.Column<double>(type: "float", nullable: false),
+                    PaymentNumber = table.Column<int>(type: "int", nullable: false),
+                    NbHours = table.Column<double>(type: "float", nullable: false),
+                    AmountPaid = table.Column<double>(type: "float", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserSummaries", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_SessionStudents_UserPersonalDetails_UserId",
+                        name: "FK_UserSummaries_UserPersonalDetails_UserId",
                         column: x => x.UserId,
                         principalTable: "UserPersonalDetails",
                         principalColumn: "UserId",
@@ -426,6 +425,76 @@ namespace PADatabase.Migrations
                         column: x => x.AssignmentId,
                         principalTable: "Assignments",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Sessions",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Location = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PackageCodeListId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    StartTime = table.Column<TimeOnly>(type: "time", nullable: false),
+                    EndTime = table.Column<TimeOnly>(type: "time", nullable: false),
+                    DateofLesson = table.Column<DateOnly>(type: "date", nullable: false),
+                    UserSummariesId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    SNumber = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Sessions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Sessions_PackageCodeLists_PackageCodeListId",
+                        column: x => x.PackageCodeListId,
+                        principalTable: "PackageCodeLists",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Sessions_UserPersonalDetails_UserId",
+                        column: x => x.UserId,
+                        principalTable: "UserPersonalDetails",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Sessions_UserSummaries_UserSummariesId",
+                        column: x => x.UserSummariesId,
+                        principalTable: "UserSummaries",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SessionStudents",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    SessionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    UserSummariesId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    DeleteButton = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SessionStudents", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SessionStudents_Sessions_SessionId",
+                        column: x => x.SessionId,
+                        principalTable: "Sessions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_SessionStudents_UserPersonalDetails_UserId",
+                        column: x => x.UserId,
+                        principalTable: "UserPersonalDetails",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_SessionStudents_UserSummaries_UserSummariesId",
+                        column: x => x.UserSummariesId,
+                        principalTable: "UserSummaries",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
@@ -498,6 +567,11 @@ namespace PADatabase.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Infromation_UserPersonalDetailUserId",
+                table: "Infromation",
+                column: "UserPersonalDetailUserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PaymentUsers_UserId",
                 table: "PaymentUsers",
                 column: "UserId");
@@ -508,6 +582,16 @@ namespace PADatabase.Migrations
                 column: "PackageCodeListId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Sessions_UserId",
+                table: "Sessions",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Sessions_UserSummariesId",
+                table: "Sessions",
+                column: "UserSummariesId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_SessionStudents_SessionId",
                 table: "SessionStudents",
                 column: "SessionId");
@@ -516,6 +600,11 @@ namespace PADatabase.Migrations
                 name: "IX_SessionStudents_UserId",
                 table: "SessionStudents",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SessionStudents_UserSummariesId",
+                table: "SessionStudents",
+                column: "UserSummariesId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Transactions_UserId",
@@ -530,6 +619,11 @@ namespace PADatabase.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_UserLocation_UserId",
                 table: "UserLocation",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserSummaries_UserId",
+                table: "UserSummaries",
                 column: "UserId");
         }
 
@@ -558,6 +652,9 @@ namespace PADatabase.Migrations
                 name: "CourseUsers");
 
             migrationBuilder.DropTable(
+                name: "Infromation");
+
+            migrationBuilder.DropTable(
                 name: "PaymentUsers");
 
             migrationBuilder.DropTable(
@@ -582,9 +679,6 @@ namespace PADatabase.Migrations
                 name: "Sessions");
 
             migrationBuilder.DropTable(
-                name: "UserPersonalDetails");
-
-            migrationBuilder.DropTable(
                 name: "Location");
 
             migrationBuilder.DropTable(
@@ -592,6 +686,12 @@ namespace PADatabase.Migrations
 
             migrationBuilder.DropTable(
                 name: "PackageCodeLists");
+
+            migrationBuilder.DropTable(
+                name: "UserSummaries");
+
+            migrationBuilder.DropTable(
+                name: "UserPersonalDetails");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");

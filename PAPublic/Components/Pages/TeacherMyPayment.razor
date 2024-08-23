@@ -7,8 +7,23 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject RoleManager<IdentityRole> _roleManager
 @inject UserManager<IdentityUser> UserManager
+@using Microsoft.AspNetCore.Components.Routing
 
 <h3>Your Payment</h3>
+
+@if (loading)
+{
+    <div class="loading-overlay">
+        <div class="loading-spinner">
+            Loading...
+        </div>
+    </div>
+}
+
+else
+{
+
+
 
 @if (ListUser != null && ListUser.Any())
 {
@@ -17,24 +32,21 @@
             <thead class="table-light">
                 <tr>
                     <th>Payment Number</th>
-                    <th>Paymemt</th>
+                    <th>Payment</th>
                     <th>Number of Hours</th>
                     <th>Status</th>
                     <th>View Sessions</th>
-                 
                 </tr>
             </thead>
             <tbody>
                 @foreach (var item in ListUser)
                 {
                     <tr>
-                    
                         <td>@item.PaymentNumber</td>
                         <td>@item.Money</td>
                         <td>@item.NbHours</td>
                         <td>@item.Status</td>
-                        <td> <a href="/Session/SessionwithPaymentNumber/@item.Id" class="btn btn-primary btn-sm me-2">Sessions</a></td>
-                       
+                        <td><a href="/Session/SessionwithPaymentNumber/@item.Id" class="btn btn-primary btn-sm me-2">Sessions</a></td>
                     </tr>
                 }
             </tbody>
@@ -46,15 +58,46 @@ else
     <div class="alert alert-warning">No sessions found.</div>
 }
 
+}
+
 @code {
+    private bool loading;
+    private bool isInitializing = true;
     private List<UserSummaries> ListUser = new List<UserSummaries>();
 
     protected override async Task OnInitializedAsync()
     {
+        loading = true;
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         string authid = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        ListUser = _context.UserSummaries.Where(x => x.UserId == authid).OrderBy(x => x.PaymentNumber).ToList();
-        int x = 9;
+        ListUser = await _context.UserSummaries
+            .Where(x => x.UserId == authid)
+            .OrderBy(x => x.PaymentNumber)
+            .ToListAsync();
+
+        isInitializing = false;
+        loading = false;
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _navigation.LocationChanged += PreventNavigationDuringInitialization;
+        }
+    }
+
+    private void PreventNavigationDuringInitialization(object sender, LocationChangedEventArgs e)
+    {
+        if (isInitializing)
+        {
+            _navigation.NavigateTo(_navigation.Uri, forceLoad: true);
+        }
+    }
+
+    public void Dispose()
+    {
+        _navigation.LocationChanged -= PreventNavigationDuringInitialization;
     }
 }

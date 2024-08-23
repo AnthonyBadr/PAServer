@@ -3,7 +3,7 @@
 @using Microsoft.EntityFrameworkCore
 @inject UserManager<IdentityUser> UserManager
 @inject RoleManager<IdentityRole> RoleManager
-
+@inject ApplicationDbContext _context
 <h3>Registered Users</h3>
 
 @if (users != null)
@@ -85,13 +85,19 @@ else
     private List<UserRole> Roles { get; set; }
 
     private List<IdentityUser> users;
+    private List<UserPersonalDetails> userpList;
+    private List<UserPersonalDetails> ListUserDetails;
+    private UserPersonalDetails userp;
+
     private Dictionary<string, List<string>> userRoles = new Dictionary<string, List<string>>();
     private IdentityUser editingUser;
     private List<string> editingUserRoles;
     private List<IdentityRole> allRoles;
     protected override async Task OnInitializedAsync()
     {
+        ListUserDetails = _context.UserPersonalDetails.Include(x => x.User).ToList();
         users = await UserManager.Users.ToListAsync();
+        userpList = _context.UserPersonalDetails.ToList();
         allRoles = await RoleManager.Roles.ToListAsync();
 
         Roles = allRoles.Select(key => new UserRole() { ID = key.Name.ToLower(), Name = key.Name! }).ToList();
@@ -121,10 +127,21 @@ else
     private async Task DeleteUser(IdentityUser user)
     {
         var result = await UserManager.DeleteAsync(user);
+        var userp = _context.UserPersonalDetails.FirstOrDefault(x => x.UserId == user.Id);
         if (result.Succeeded)
         {
+            if (userp != null)
+            {
+                userpList.Remove(userp);
+            }
+            else
+            {
+                // Handle the case where no matching entry is found
+            }
+
             users.Remove(user);
             userRoles.Remove(user.Id);
+            
         }
         else
         {

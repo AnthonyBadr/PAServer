@@ -17,12 +17,13 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using System.Net.Mail;
 using Microsoft.AspNetCore.WebUtilities;
-
-
+using System.Net;
+using PAWebShared.Components;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 namespace ServerApp2.Areas.Identity.Pages.Account
 {
-
     public class RegisterModel : PageModel
     {
         private readonly SignInManager<IdentityUser> _signInManager;
@@ -31,18 +32,18 @@ namespace ServerApp2.Areas.Identity.Pages.Account
         private readonly IUserEmailStore<IdentityUser> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
-        private readonly RoleManager<IdentityRole> _roleManager; // A
+        private readonly RoleManager<IdentityRole> _roleManager;
 
         public RegisterModel(
             UserManager<IdentityUser> userManager,
-             RoleManager<IdentityRole> roleManager, // Add this
+            RoleManager<IdentityRole> roleManager,
             IUserStore<IdentityUser> userStore,
             SignInManager<IdentityUser> signInManager,
             ILogger<RegisterModel> logger,
             IEmailSender emailSender)
-        {   
+        {
             _userManager = userManager;
-            _roleManager = roleManager; // Initialize it
+            _roleManager = roleManager;
             _userStore = userStore;
             _emailStore = GetEmailStore();
             _signInManager = signInManager;
@@ -51,7 +52,7 @@ namespace ServerApp2.Areas.Identity.Pages.Account
         }
 
         [BindProperty]
-        public InputModel Input { get; set; } 
+        public InputModel Input { get; set; }
 
         public string ReturnUrl { get; set; }
         public IList<AuthenticationScheme> ExternalLogins { get; set; }
@@ -69,7 +70,7 @@ namespace ServerApp2.Areas.Identity.Pages.Account
             if (ModelState.IsValid)
             {
                 var user = CreateUser();
-                
+
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
                 var result = await _userManager.CreateAsync(user, Input.Password);
@@ -81,14 +82,13 @@ namespace ServerApp2.Areas.Identity.Pages.Account
                     var roleResult = await _userManager.AddToRoleAsync(user, Input.Role);
 
                     if (!roleResult.Succeeded)
-                    {   
-                        // Log an error message or handle errors
+                    {
                         _logger.LogError("Error adding role: {Role}", Input.Role);
                         foreach (var error in roleResult.Errors)
                         {
                             ModelState.AddModelError(string.Empty, error.Description);
                         }
-                        // Possibly return to show the form again or a failure message
+                        return Page(); // Show the form again with errors
                     }
 
                     var userId = await _userManager.GetUserIdAsync(user);
@@ -100,12 +100,38 @@ namespace ServerApp2.Areas.Identity.Pages.Account
                         values: new { area = "Identity", userId = userId, code = code, returnUrl = returnUrl },
                         protocol: Request.Scheme);
 
-                    await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
-                        $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+                    string fromMail = "anthonybadr40@gmail.com";
+                    string fromPassword = "fqsunsbeykwyoojg";
+
+                    MailMessage message = new MailMessage();
+                    message.From = new MailAddress(fromMail);
+                    message.Subject = "Confirm Your Email";
+                    message.To.Add(new MailAddress(Input.Email));
+                    message.Body = $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.";
+                    message.IsBodyHtml = true; // Set to true for HTML email
+
+                    try
+                    {
+                        var smtpClient = new System.Net.Mail.SmtpClient("smtp.gmail.com")
+                        {
+                            Port = 587,
+                            Credentials = new NetworkCredential(fromMail, fromPassword),
+                            EnableSsl = true,
+                        };
+
+                        smtpClient.Send(message);
+
+                        // Log success message if needed
+                        _logger.LogInformation("Confirmation email sent to {Email}.", Input.Email);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error sending email to {Email}.", Input.Email);
+                    }
 
                     if (_userManager.Options.SignIn.RequireConfirmedAccount)
                     {
-                        return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl = returnUrl });
+                        return RedirectToPage("Check"); 
                     }
                     else
                     {
@@ -119,11 +145,8 @@ namespace ServerApp2.Areas.Identity.Pages.Account
                 }
             }
 
-            // If we got this far, something failed, redisplay form
             return Page();
         }
-
-
 
         private IdentityUser CreateUser()
         {

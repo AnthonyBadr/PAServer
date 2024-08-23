@@ -11,26 +11,22 @@
 @inject RoleManager<IdentityRole> _roleManager
 @inject UserManager<IdentityUser> UserManager
 
-
-
-@if (loading)
-{
-    <div class="loading-overlay">
-        <div class="loading-spinner">
-            Loading...
-        </div>
-    </div>
-}
-else
-{
-
-
 <label for="packageCodeListId" class="form-label">Package Code</label>
 
 <label for="userFilter" class="form-label">Filter by User</label>
 <select id="userFilter" class="form-select" @onchange="OnUserSelected">
     <option value="7c6cb4c5-28b9-48c9-a2b3-e7fba3b4a954">---------</option>
     @foreach (var user in userDetails)
+    {
+        <option value="@user.UserId">@user.FirstName</option>
+    }
+</select>
+
+<label for="userFilter" class="form-label">Filter by Tutor</label>
+
+<select id="userFilter" class="form-select" @onchange="OnTeacherSeelcted">
+    <option value="7c6cb4c5-28b9-48c9-a2b3-e7fba3b4a954">---------</option>
+    @foreach (var user in userDetailstutor)
     {
         <option value="@user.UserId">@user.FirstName</option>
     }
@@ -49,9 +45,10 @@ else
         <option value="@pl.Id">@pl.Pckg_Name</option>
     }
 
-}
-else
-{</select>
+    }
+    else
+    {
+</select>
 
 @if (PagedSessionStudent != null && PagedSessionStudent.Any())
 {
@@ -69,33 +66,28 @@ else
                     <th>Start Time</th>
                     <th>End Time</th>
                     <th>Time Difference</th>
-                    
+
                 </tr>
             </thead>
             <tbody>
                 @foreach (var item in PagedSessionStudent)
                 {
                     <tr>
-                           <td>@item.Session.SNumber</td>
+                        <td>@item.Session.SNumber</td>
                         <td>@item.Session.User.FirstName</td>
                         <td>@item.Session.Location</td>
                         <td>
                             @{
-                                if (role != "Student")
-                                {
-                                    var price = item.Session.PackageCodeList.Price *
-                                    (1 - (item.Session.PackageCodeList.percentLES + item.Session.PackageCodeList.percentBTAC));
-                                    @price
-                                    ;
-                                }
-                                else
-                                {
-                                    @item.Session.PackageCodeList.Price
-                                    ;
-                                }
+                                var price = item.Session.PackageCodeList.Price *
+                                (1 - (item.Session.PackageCodeList.percentLES + item.Session.PackageCodeList.percentBTAC));
                             }
+                            <span>@price</span>
+                            <span> and </span>
+                            <span>@item.Session.PackageCodeList.Price</span>
                         </td>
-                        <td>@item.Session.PackageCodeList.Pckg_Name</td>
+
+
+                        <td>@item.Session.PackageCodeList.Description</td>
                         <td>@(item.User?.FirstName ?? "No User")</td>
                         <td>@item.Session.DateofLesson</td>
                         <td>@item.Session.StartTime</td>
@@ -109,7 +101,7 @@ else
                             }
                             @totalHours.ToString("0.##") hours
                         </td>
-                        @if (role!="Student")
+                        @if (role != "Student")
                         {
 
                             @if (item.DeleteButton == "true")
@@ -131,16 +123,12 @@ else
 }
 else
 {
-    
 
-<div>
-       
+
+    <div>
     </div>
     <div class="alert alert-warning">No sessions found.</div>
 }
-    <!-- Your page content goes here -->
-}
-
 
 @code {
     private double TimeDiffernce;
@@ -155,9 +143,9 @@ else
     List<UserPersonalDetails> userDetails = new List<UserPersonalDetails>();
     List<UserPersonalDetails> userDetailstutor = new List<UserPersonalDetails>();
     private string selectedUserId; // Holds the selected value
-    private string  selectedPacakgeListId;
+    private string selectedTeacherid;
+    private string selectedPacakgeListId;
     private string SNUMBER;
-    private string authid;
     private int currentPage = 1;
     private int totalPages = 1;
     private int pageSize = 5;
@@ -178,7 +166,7 @@ else
         {
             double priceremoved = item.Session.PackageCodeList.Price * (1 - (item.Session.PackageCodeList.percentLES + item.Session.PackageCodeList.percentBTAC));
             double oenSessionStudent = item.Session.PackageCodeList.Price;
-            sumtoRemove = sumtoRemove +priceremoved;
+            sumtoRemove = sumtoRemove + priceremoved;
             totlalSumSessionforperc = totlalSumSessionforperc + item.Session.PackageCodeList.Price;
             var StuentPayment = _context.UserSummaries.Where(x => x.Id == item.UserSummariesId).FirstOrDefault();
             StuentPayment.Money = StuentPayment.Money - oenSessionStudent;
@@ -194,7 +182,7 @@ else
         else
         {
             var timeDiff = Sessionone.EndTime - Sessionone.StartTime;
-            TimeDiffernce = timeDiff.TotalHours;
+            TimeDiffernce= timeDiff.TotalHours;
         }
         var BTACSummary = _context.UserSummaries.Where(x => x.Status == "BTAC").FirstOrDefault();
         var LESSummary = _context.UserSummaries.Where(x => x.Status == "LES").FirstOrDefault();
@@ -208,8 +196,9 @@ else
         {
             LESSummary.Money = LESSummary.Money - LESpayment;
         }
+       
 
-        var TeacherPayment = _context.UserSummaries.Where(x => x.Id ==Sessionone.UserSummariesId).FirstOrDefault();
+        var TeacherPayment = _context.UserSummaries.Where(x => x.Id == Sessionone.UserSummariesId).FirstOrDefault();
         _context.Sessions.Remove(Sessionone);
 
         TeacherPayment.Money = TeacherPayment.Money - sumtoRemove;
@@ -218,11 +207,10 @@ else
         _context.SaveChanges();
 
     }
-    private bool loading = true;
+
 
     protected override async Task OnInitializedAsync()
     {
-        loading = true;
 
         var studentRole = await _roleManager.Roles.SingleOrDefaultAsync(r => r.Name == "Student");
         var studentIds = (await UserManager.GetUsersInRoleAsync(studentRole.Name)).Select(u => u.Id).ToList();
@@ -239,40 +227,42 @@ else
         // Load initial data
         PackageCodeList = await _context.PackageCodeLists.ToListAsync();
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        authid = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string authid = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
         role = authState.User.FindFirstValue(ClaimTypes.Role);
+
 
         if (role == "Student")
         {
-            SessionStudent = await _context.SessionStudents.Where(c => c.UserId == authid)
-                .Include(p => p.User)
-                .Include(p => p.Session)
-                    .ThenInclude(s => s.PackageCodeList)
-                .ToListAsync();
+            SessionStudent = _context.SessionStudents.Where(c => c.UserId == authid)
+             .Include(p => p.User)
+            .Include(p => p.Session)
+                .ThenInclude(s => s.PackageCodeList)
+            .ToList();
 
             UpdatePagination();
         }
+        else if(role=="Teacher")
+        {
+
+            Sessions = _context.Sessions.Where(c => c.UserId == authid).ToList();
+            sessionIds = Sessions.Select(s => s.Id).ToList();
+            callallSession();
+        }
         else
         {
-            Sessions = await _context.Sessions.Where(c => c.UserId == authid).ToListAsync();
+            Sessions = _context.Sessions.ToList();
             sessionIds = Sessions.Select(s => s.Id).ToList();
             callallSession();
         }
 
-        UserPersonalDetails = await _context.UserPersonalDetails.ToListAsync();
 
-        loading = false;
+        UserPersonalDetails = _context.UserPersonalDetails.ToList();
+
+
+
     }
 
-private ValueTask OnLocationChanging(LocationChangingContext context)
-{
-    if (loading)
-    {
-        context.PreventNavigation();
-    }
 
-    return ValueTask.CompletedTask;
-}
 
 
     private void callallSession()
@@ -291,7 +281,7 @@ private ValueTask OnLocationChanging(LocationChangingContext context)
     public void OnSessionNumber(ChangeEventArgs e)
     {
         SNUMBER = e.Value.ToString();
-        if (SNUMBER == "")
+        if (SNUMBER == null)
         {
             SNUMBER = null;
         }
@@ -307,7 +297,16 @@ private ValueTask OnLocationChanging(LocationChangingContext context)
             selectedUserId = null;
         }
         Filter();
-     }
+    }
+    public void OnTeacherSeelcted(ChangeEventArgs e)
+    {
+        selectedTeacherid = e.Value.ToString();
+        if (selectedTeacherid == "7c6cb4c5-28b9-48c9-a2b3-e7fba3b4a954")
+        {
+            selectedTeacherid = null;
+        }
+        Filter();
+    }
 
     private void OnTutorSelected(ChangeEventArgs e)
     {
@@ -322,15 +321,18 @@ private ValueTask OnLocationChanging(LocationChangingContext context)
     public void Filter()
     {
         SessionStudent = _context.SessionStudents
-        .Include(ss => ss.Session)  // Include the Session entity
-         .ThenInclude(s => s.PackageCodeList)  // Include related PackageCodeList within Session
-        .Include(x => x.User)
-        .Where(x => x.Session.UserId == authid)
-        .ToList();
+         .Include(x => x.Session)
+         .ToList();
+
 
         if (selectedUserId != null)
         {
             SessionStudent = SessionStudent.Where(x => x.UserId == selectedUserId).ToList();
+        }
+
+        if (selectedTeacherid != null)
+        {
+            SessionStudent = SessionStudent.Where(x => x.Session.UserId == selectedTeacherid).ToList();
         }
 
         if (selectedPacakgeListId != null)

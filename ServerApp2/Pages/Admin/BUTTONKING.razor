@@ -46,12 +46,12 @@
             var BTACSummary = _context.UserSummaries.Where(x => x.Status == "BTAC").FirstOrDefault();
             var LESSummary = _context.UserSummaries.Where(x => x.Status == "LES").FirstOrDefault();
 
-            if (BTACSummary != null) BTACSummary.Status = "BTACwp";
-            if (LESSummary != null) LESSummary.Status = "LESwp";
+            if (BTACSummary != null) BTACSummary.Status = "BTACwaiting";
+            if (LESSummary != null) LESSummary.Status = "LESwaiting";
 
             var userSummary = new UserSummaries(
                 id: Guid.NewGuid(),
-                userId: "cc0cedca-d1aa-447d-898b-03164dd8042a",
+                userId: "b23e8129-b290-4d80-8f9e-0c65ab5c7b8d",
                 money: 0,
                 paymentNumber: 0,
                 nbHours: 0,
@@ -61,7 +61,7 @@
 
             var userSummary2 = new UserSummaries(
                 id: Guid.NewGuid(),
-                userId: "e01ffefc-6d3d-4de0-b47c-509eb043f1d7",
+                userId: "69f7e439-4f0c-49fc-923c-ebd4d7f0f43c",
                 money: 0,
                 paymentNumber: 0,
                 nbHours: 0,

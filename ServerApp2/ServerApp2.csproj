@@ -5,6 +5,11 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UserSecretsId>aspnet-ServerApp2-1576bdfb-b180-45cd-9009-32106708ee8d</UserSecretsId>
+		<RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+		<ContainerRuntimeIdentifier>win-x64</ContainerRuntimeIdentifier>
+		<ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:8.0-nanoserver-1809</ContainerBaseImage>
+		<EnableSdkContainerDebugging>True</EnableSdkContainerDebugging>
+		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -24,12 +29,19 @@
 	    <PrivateAssets>all</PrivateAssets>
 	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 	  </PackageReference>
+	  <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.6" />
 	  <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration" Version="8.0.2" />
 	  <PackageReference Include="Quick.AspNetCore.Components.Web.Extensions" Version="6.0.2" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\PAWebShared\PAWebShared.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ContainerEnvironmentVariable Include="ASPNETCORE_HTTPS_PORTS">
+	    <Value>8081</Value>
+	  </ContainerEnvironmentVariable>
 	</ItemGroup>
 
 </Project>
