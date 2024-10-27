@@ -254,7 +254,24 @@ else
         }
     }
 
+    private int FindPaymentNumber(string UserId)
+    {
+        var maxPaymentNumber = _context.UserSummaries
+            .Where(x => x.UserId == UserId)
+            .Max(x => x.PaymentNumber);
+        if (maxPaymentNumber == 0)
+        {
+            return 1;
 
+        }
+        else
+        {
+            return maxPaymentNumber + 1;
+        }
+        return 0;
+
+
+    }
 
 
 
