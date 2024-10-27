@@ -255,23 +255,7 @@ else
     }
 
 
-    private int FindPaymentNumber(string UserId){
-        var maxPaymentNumber = _context.UserSummaries
-            .Where(x => x.UserId == "UserId")
-            .Max(x => x.PaymentNumber);
-        if (maxPaymentNumber ==0)
-        {
-            return 1;
 
-        }
-        else
-        {
-            return maxPaymentNumber + 1;
-        }
-        return 0;
-
-
-    }
 
 
 
@@ -313,19 +297,7 @@ else
                 index++;
                 _context.SessionStudents.Add(sessionUser);
 
-                 pn=FindPaymentNumber(sessionUser.UserId);
-
-
-                var payedNumber = _context.UserSummaries
-                       .Where(x => x.Status == "Paid")  
-                       .Select(x => x.PaymentNumber).FirstOrDefault();
-
-              
-
-                if (payedNumber == null)
-                {
-                    payedNumber = 1;
-                }
+                pn=FindPaymentNumber(sessionUser.UserId);
                 double s = sessionUser.Session.PackageCodeList.Price;
 
                 SumofParentsPayment = sessionUser.Session.PackageCodeList.Price + SumofParentsPayment;
@@ -338,7 +310,7 @@ else
                       id: Guid.NewGuid(),
                       userId: studentId.StudentDetails.UserId,
                   money: s,
-                      paymentNumber: payedNumber + 1,
+                      paymentNumber: pn,
                       nbHours: TimeDifferenceInHours,
                       status: "Pending",
                       amountPaid: 0
@@ -368,24 +340,17 @@ else
             BTACSummary.Money = BTACSummary.Money + btacaddedPayment;
             LESSummary.Money = LESSummary.Money + LESpayment;
             var sess = _context.Sessions.Where(x => x.Id == Session.Id).FirstOrDefault();
+            int pn = 0;
             if (_context.UserSummaries.Where(x => x.UserId == authid && x.Status == "Pending").Count()==0)
             {
-                var payedNumber = _context.UserSummaries
-                    .Where(x => x.Status == "Paid")  // Add the status value or variable
-                    .Select(x => x.PaymentNumber).FirstOrDefault();
+                pn = FindPaymentNumber(sessionUser.UserId);
 
-
-
-                if (payedNumber == null)
-                {
-                    payedNumber = 1;
-                }
 
                 var userSummary = new UserSummaries(
                      id: Guid.NewGuid(),                
                      userId: authid,
                  money: Sum,
-                     paymentNumber: payedNumber+1,
+                     paymentNumber: pn ,
                      nbHours:TimeDifferenceInHours,                    
                      status: "Pending",
                      amountPaid: 0
