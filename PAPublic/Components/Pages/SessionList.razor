@@ -53,6 +53,9 @@ else
 else
 {</select>
 
+
+
+
 @if (PagedSessionStudent != null && PagedSessionStudent.Any())
 {
     <div class="table-responsive">
@@ -96,8 +99,8 @@ else
                             }
                         </td>
                         <td>@item.Session.PackageCodeList.Pckg_Name</td>
-                        <td>@(item.User?.FirstName ?? "No User")</td>
-                        <td>@item.Session.DateofLesson</td>
+                            <td>@($"{item.User?.FirstName} {item.User?.LastName ?? "No User"}")</td>
+                            <td>@item.Session.DateofLesson</td>
                         <td>@item.Session.StartTime</td>
                         <td>@item.Session.EndTime</td>
                         <td>
@@ -196,6 +199,7 @@ else
             var timeDiff = Sessionone.EndTime - Sessionone.StartTime;
             TimeDiffernce = timeDiff.TotalHours;
         }
+        
         var BTACSummary = _context.UserSummaries.Where(x => x.Status == "BTAC").FirstOrDefault();
         var LESSummary = _context.UserSummaries.Where(x => x.Status == "LES").FirstOrDefault();
         double btacaddedPayment = totlalSumSessionforperc * Sessionone.PackageCodeList.percentBTAC;
@@ -223,7 +227,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         loading = true;
-
+        
         var studentRole = await _roleManager.Roles.SingleOrDefaultAsync(r => r.Name == "Student");
         var studentIds = (await UserManager.GetUsersInRoleAsync(studentRole.Name)).Select(u => u.Id).ToList();
         userDetails = await _context.UserPersonalDetails

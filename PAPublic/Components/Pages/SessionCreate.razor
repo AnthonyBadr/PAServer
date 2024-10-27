@@ -45,7 +45,7 @@ else
                             {
                                 <div class="checklist-item">
                                     <input type="checkbox" @bind="item.IsChecked" />
-                                    <label>@item.StudentDetails.FirstName</label>
+                                    <label>@item.StudentDetails.FirstName @item.StudentDetails.LastName</label>
                                 </div>
                             }
                         }
@@ -254,6 +254,27 @@ else
         }
     }
 
+
+    private int FindPaymentNumber(string UserId){
+        var maxPaymentNumber = _context.UserSummaries
+            .Where(x => x.UserId == "UserId")
+            .Max(x => x.PaymentNumber);
+        if (maxPaymentNumber ==0)
+        {
+            return 1;
+
+        }
+        else
+        {
+            return maxPaymentNumber + 1;
+        }
+        return 0;
+
+
+    }
+
+
+
     private async Task CreateSession()
     {
         try
@@ -269,6 +290,7 @@ else
 
             int index = 0;
             double SumofParentsPayment = 0;
+            int pn=0;
             foreach (var studentId in selectedUserDetails)
             {
 
@@ -291,9 +313,15 @@ else
                 index++;
                 _context.SessionStudents.Add(sessionUser);
 
+                 pn=FindPaymentNumber(sessionUser.UserId);
+
+
                 var payedNumber = _context.UserSummaries
-                       .Where(x => x.Status == "Paid")  // Add the status value or variable
+                       .Where(x => x.Status == "Paid")  
                        .Select(x => x.PaymentNumber).FirstOrDefault();
+
+              
+
                 if (payedNumber == null)
                 {
                     payedNumber = 1;
@@ -345,6 +373,9 @@ else
                 var payedNumber = _context.UserSummaries
                     .Where(x => x.Status == "Paid")  // Add the status value or variable
                     .Select(x => x.PaymentNumber).FirstOrDefault();
+
+
+
                 if (payedNumber == null)
                 {
                     payedNumber = 1;

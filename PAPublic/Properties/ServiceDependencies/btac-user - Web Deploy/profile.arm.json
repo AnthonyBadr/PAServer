@@ -21,7 +21,7 @@
     },
     "resourceName": {
       "type": "string",
-      "defaultValue": "btacAdmin",
+      "defaultValue": "btac-user",
       "metadata": {
         "description": "Name of the main resource to be created by this template."
       }

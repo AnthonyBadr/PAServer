@@ -6,13 +6,19 @@
 @inject ApplicationDbContext _context
 <h3>Registered Users</h3>
 
+
+<label for="userFilter" class="form-label">Filter by Email</label>
+
+<input id="snumberfilter" class="form-select" @onchange="OnEmailSearch" />
+
+
 @if (users != null)
 {
     <table class="table">
         <thead>
             <tr>
                 <th>Username</th>
-                <th>Email</th>
+                <th>Confirmation</th>
                 <th>Roles</th>
                 <th>Actions</th>
             </tr>
@@ -22,7 +28,7 @@
             {
                 <tr>
                     <td>@user.UserName</td>
-                    <td>@user.Email</td>
+                    <td>@user.EmailConfirmed</td>
                     <td>
                         @if (userRoles.ContainsKey(user.Id))
                         {
@@ -83,7 +89,7 @@ else
     }
 
     private List<UserRole> Roles { get; set; }
-
+    private string email;
     private List<IdentityUser> users;
     private List<UserPersonalDetails> userpList;
     private List<UserPersonalDetails> ListUserDetails;
@@ -104,6 +110,34 @@ else
 
         await LoadUserRoles();
     }
+
+    public void OnEmailSearch(ChangeEventArgs e)
+    {
+        email = e.Value.ToString();
+        if (email == "")
+        {
+            email = null;
+        }
+        Filter();
+    }
+
+    public async void Filter()
+    {
+        if (email != null)
+        {
+            users = await UserManager.Users
+         .Where(u => u.UserName.StartsWith(email))
+         .ToListAsync();
+        }
+        else
+        {
+            
+        }
+
+            
+
+    }
+
 
     private async Task LoadUserRoles()
     {
